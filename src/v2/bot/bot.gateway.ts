@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 
 import {
   ApiMessageReaction,
@@ -10,31 +10,35 @@ import {
   ChannelUpdatedEvent,
   UserChannelAddedEvent,
   UserClanRemovedEvent,
+  TokenSentEvent,
 } from 'mezon-sdk';
-import { MezonService } from '../mezon/mezon.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { MessageButtonClicked } from 'mezon-sdk/dist/cjs/rtapi/realtime';
 
 @Injectable()
 export class BotGateway {
   private readonly logger = new Logger(BotGateway.name);
-  private readonly client: MezonClient;
 
   constructor(
     private readonly eventEmitter: EventEmitter2,
-    private readonly mezonService: MezonService,
-  ) {
-    this.client = mezonService.getClient();
-  }
+    @Inject('MEZON') private readonly client: MezonClient,
+  ) {}
 
-  initEvent() {
-    for (const event in Events) {
-      const eventValue = Events[event].replace(/_event/g, '').replace(/_/g, '');
-      this.logger.log(`Init event ${eventValue}`);
-      const key = `handle${eventValue}`;
-      if (key in this) {
-        this.client.on(Events[event], this[key].bind(this));
-      }
-    }
+  async initEvent() {
+    this.logger.log('Initializing Mezon bot events...');
+    
+    // Register event listeners using official mezon-sdk methods
+    await this.client.onChannelMessage(this.handlechannelmessage);
+    this.client.onMessageReaction(this.handlemessagereaction);
+    this.client.onChannelCreated(this.handlechannelcreated);
+    this.client.onUserClanRemoved(this.handleuserclanremoved);
+    this.client.onUserChannelAdded(this.handleuserchanneladded);
+    this.client.onChannelDeleted(this.handlechanneldeleted);
+    this.client.onChannelUpdated(this.handlechannelupdated);
+    this.client.onAddClanUser(this.handleaddclanuser);
+    this.client.onMessageButtonClicked(this.handlemessagebuttonclicked);
+    
+    this.logger.log('Mezon bot events initialized successfully');
   }
   // processMessage(msg: ChannelMessage) {}
 

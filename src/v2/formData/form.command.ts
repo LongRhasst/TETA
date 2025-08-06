@@ -1,9 +1,8 @@
+import { MezonSendChannelMessage } from '../mezon/type/mezon';
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prettier/prettier */
 import { Injectable, Logger } from '@nestjs/common';
-import { ChannelMessage, Events, MezonClient, ChannelMessageContent, EMarkdownType } from 'mezon-sdk';
-// Import EButtonMessageStyle, EMessageComponentType if needed for interactive forms later
-// import { EButtonMessageStyle, EMessageComponentType } from 'mezon-sdk';
+import { ChannelMessage, Events, MezonClient } from 'mezon-sdk';
 import { OnEvent } from '@nestjs/event-emitter';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { MezonService } from '../mezon/mezon.service';
@@ -38,11 +37,14 @@ export class FormCommand {
     private readonly mezonService: MezonService,
   ) {
     this.client = mezonService.getClient();
+    this.logger.log(`Listening for event: ${Events.ChannelMessage}`);
   }
 
   @OnEvent(Events.ChannelMessage)
   async handleChannelMessage(message: ChannelMessage) {
-    if (message.content.t === '*tomtat') {
+    this.logger.log(`Received message: ${message?.content?.t}`);
+    
+    if (message?.content?.t === '*tomtat') {
       this.logger.log('Received *tomtat command');
 
       let responseMessage = 'Dữ liệu tóm tắt:';
@@ -50,15 +52,22 @@ export class FormCommand {
         responseMessage += `\n${index + 1}. Username: ${item.username}, Data: ${item.data}`;
       });
 
-      const messageContent: ChannelMessageContent = {
-        t: responseMessage,
-        mk: [
-          { type: EMarkdownType.TRIPLE, s: 0, e: 'Dữ liệu tóm tắt:'.length },
-        ],
-      };
-
       try {
-        await this.mezonService.sendChannelMessage(message.channel_id, messageContent, message.message_id);
+        const data: MezonSendChannelMessage = {
+          type: 'channel',
+          clan_id: message.clan_id,
+          payload: {
+            channel_id: message.channel_id,
+            message: {
+              type: 'normal_text',
+              content: responseMessage
+            }
+          }
+        };
+        
+        this.logger.log('Sending response message...');
+        await this.mezonService.sendChannelMessage(data);
+        this.logger.log('Response message sent successfully');
       } catch (error) {
         this.logger.error('Error sending message:', error);
       }

@@ -12,6 +12,10 @@ import { MezonSendMessage, MezonUpdateMessage } from './type/mezon';
 export class MezonService {
     constructor(@Inject('MEZON') private readonly mezonClient: MezonClient) {}
 
+    getClient() {
+        return this.mezonClient;
+    }
+
     async sendChannelMessage(data: MezonSendMessage) {
         // verify message type
         let sendFunction: any;
@@ -111,6 +115,6 @@ export class MezonService {
         }
     }
 
-    async updateMessage(data: MezonUpdateMessage) {}
+    async updateChannelMessage(data: MezonUpdateMessage) {}
 }
 
