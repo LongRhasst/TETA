@@ -100,6 +100,9 @@ export class MezonService {
             case 'normal_text':
                 return (await sendFunction(...args)) as ChannelMessageAck;
 
+            case 'optional':
+                return (await sendFunction(newMessage)) as ChannelMessageAck;
+
             case 'system':
                 return (await sendFunction({
                     ...newMessage,
