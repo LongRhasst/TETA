@@ -19,7 +19,7 @@ export class FormCommand {
 
   private formData: FormDataProps[] = [
     {
-      username: 'Hieu',
+      username: 'Hieu',                             
       data: 'Hom nay deo lam duoc gi !',
     },
     {

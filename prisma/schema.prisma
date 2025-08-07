@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String           @id @default(cuid())
+  email      String           @unique
+  name       String?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  projectId  String?
+  project    Project?         @relation("ProjectUsers", fields: [projectId], references: [id])
+
+  timesheets TimesheetSub[]   @relation("TimesheetUser")
+}
+
+model Project {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  users       User[]    @relation("ProjectUsers")
+  tasks       source_task[] @relation("ProjectTasks")
+}
+
+model Timesheet {
+  id         String          @id @default(cuid())
+  date       DateTime
+  outSoon    DateTime?
+  late       DateTime?
+  working    Boolean         @default(false)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  users      TimesheetSub[]  @relation("TimesheetToSub")
+}
+
+model TimesheetSub {
+  id          String     @id @default(cuid())
+  userId      String
+  timesheetId String
+
+  user        User        @relation("TimesheetUser", fields: [userId], references: [id])
+  timesheet   Timesheet   @relation("TimesheetToSub", fields: [timesheetId], references: [id])
+}
+
+model source_task {
+  id          String     @id @default(cuid())
+  name        String
+  url         String?
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  projectId   String?
+  project     Project?   @relation("ProjectTasks", fields: [projectId], references: [id])
+}

@@ -1,0 +1,21 @@
+{
+    "staff_id": "number",
+    "name": "string",
+    "position": "string",
+    "yesterday_daily": {
+        "id": "number",
+        "date": "string",
+        "status": "string"
+    },
+    "today_daily": {
+        "id": "number",
+        "date": "string",
+        "status": "string"
+    },
+    "blocking": {
+        "id": "number",
+        "date": "string",
+        "status": "string"
+    },
+    "working_status": ["remote", "onsite", "off"]
+}
