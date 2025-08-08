@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model log_timesheet {
+  id          String   @id @default(cuid())
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  user_id     String
+  project_id  String
+  task_id     String
+  start_time  DateTime
+  end_time    DateTime
+  description String?
+  project     Project  @relation(fields: [project_id], references: [id])
+  task        Task     @relation(fields: [task_id], references: [id])
+  user        User     @relation(fields: [user_id], references: [id])
+
+  @@index([project_id], map: "log_timesheet_project_id_fkey")
+  @@index([task_id], map: "log_timesheet_task_id_fkey")
+  @@index([user_id], map: "log_timesheet_user_id_fkey")
+}
+
+model log_daily {
+  id          String   @id @default(cuid())
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  user_id     String
+  date        DateTime
+  total_hours Float
+  task_id     String?
+  task        Task?    @relation(fields: [task_id], references: [id])
+  user        User     @relation(fields: [user_id], references: [id])
+
+  @@index([user_id], map: "log_daily_user_id_fkey")
+  @@index([task_id], map: "log_daily_task_id_fkey")
+}
+
+model User {
+  id              String           @id @default(cuid())
+  email           String           @unique
+  name            String?
+  password        String?
+  created_at      DateTime         @default(now())
+  updated_at      DateTime         @updatedAt
+  log_dailies     log_daily[]
+  log_timesheets  log_timesheet[]
+  project_members project_member[]
+
+  @@map("users")
+}
+
+model project_member {
+  id         String   @id @default(cuid())
+  user_id    String
+  project_id String
+  role       String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  project    Project  @relation(fields: [project_id], references: [id])
+  user       User     @relation(fields: [user_id], references: [id])
+
+  @@index([project_id], map: "project_members_project_id_fkey")
+  @@index([user_id], map: "project_members_user_id_fkey")
+  @@map("project_members")
+}
+
+model Task {
+  id             String          @id @default(cuid())
+  project_id     String
+  name           String
+  description    String?
+  created_at     DateTime        @default(now())
+  updated_at     DateTime        @updatedAt
+  log_dailies    log_daily[]
+  log_timesheets log_timesheet[]
+  project        Project         @relation(fields: [project_id], references: [id])
+
+  @@index([project_id], map: "tasks_project_id_fkey")
+  @@map("tasks")
+}
+
+model Project {
+  id              String           @id @default(cuid())
+  name            String
+  description     String?
+  created_at      DateTime         @default(now())
+  updated_at      DateTime         @updatedAt
+  log_timesheets  log_timesheet[]
+  project_members project_member[]
+  tasks           Task[]
+
+  @@map("projects")
+}

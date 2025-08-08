@@ -13,6 +13,7 @@ import * as Joi from 'joi';
       isGlobal: true,
       validationSchema: Joi.object({
         MEZON_TOKEN: Joi.string().required(),
+        DATABASE_URL: Joi.string().required(),
       })
     }),
     EventEmitterModule.forRoot(),
