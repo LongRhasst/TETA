@@ -15,7 +15,7 @@ export class FormService {
 
   async handleTomtat(message: ChannelMessage, story: string) {
     try {
-      const summary = await this.aiService.generateTomtat(story);
+      const summary = await this.aiService.generateSummarizeReport(story);
 
       console.log('FormService: sending reply...', message.content);
 
