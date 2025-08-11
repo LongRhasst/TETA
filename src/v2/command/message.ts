@@ -9,6 +9,6 @@ export function generateChannelMessageContent({
 }): ChannelMessageContent {
     return {
         t: message,
-        mk: blockMessage ?? false ? [{ type: EMarkdownType.TRIPLE, s: 0, e: message.length }] : [],
+        mk: blockMessage ?? false ? [{ type: EMarkdownType.PRE, s: 0, e: message.length }] : [],
     }
 }
