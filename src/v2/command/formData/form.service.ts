@@ -1,17 +1,24 @@
 import { ChannelMessage } from 'mezon-sdk';
-import { MezonSendMessage } from '../mezon/type/mezon';
-import { MezonService } from './../mezon/mezon.service';
+import { MezonSendMessage } from '../../mezon/type/mezon';
+import { MezonService } from '../../mezon/mezon.service';
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { generateChannelMessageContent } from '../command/message';
+import { generateChannelMessageContent } from '../message';
+import { AiService } from 'src/v2/ai/ai.service';
 
 @Injectable()
 export class FormService {
-  constructor(private readonly mezonService: MezonService) {}
+  constructor(
+    private readonly mezonService: MezonService,
+    private readonly aiService: AiService,
+  ) {}
 
-  async handleTomtat(message: ChannelMessage) {
+  async handleTomtat(message: ChannelMessage, story: string) {
     try {
+      const summary = await this.aiService.generateTomtat(story);
+
       console.log('FormService: sending reply...', message.content);
+
       await this.mezonService.sendChannelMessage({
         type: 'channel',
         clan_id: message.clan_id,
@@ -21,7 +28,7 @@ export class FormService {
           message: {
             type: 'optional',
             content: generateChannelMessageContent({
-              message: 'Long nguuuuu',
+              message: summary,
               blockMessage: true,
             }),
           },
