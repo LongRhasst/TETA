@@ -30,7 +30,7 @@ export class FormService {
 
       if (!processingMessage) return;
 
-      const summary = await this.aiService.generateTomtat(story);
+      const summary = await this.aiService.generateCompare(story);
 
       await this.mezonService.updateMessage({
         clan_id: message.clan_id, // clan_id is now needed for updateMessage
