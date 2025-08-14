@@ -27,7 +27,6 @@ export class FormCommand {
   async handleChannelMessage(message: ChannelMessage) {
     try {
       const messageContent = message?.content?.t;
-      console.log(`Received message: ${messageContent}`);
 
       if (messageContent && messageContent.startsWith('*tomtat ')) {
         const storyToSummarize = messageContent.substring('*tomtat '.length).trim();

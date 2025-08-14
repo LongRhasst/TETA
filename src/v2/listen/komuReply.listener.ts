@@ -16,9 +16,6 @@ export class KomuReplyListener {
       message.display_name?.toUpperCase?.() === 'KOMU';
     const isReply = Array.isArray(message.references) && message.references.length > 0;
     const isUpdate = message.code === TypeMessage.ChatUpdate;
-    console.log(`${message.code}`)
-    console.log(`${isReply}`)
-    console.log(`${isUpdate}`);
 
     // Parse referenced content if present; it may be JSON string like {"t":"*daily"}
     let refText = '';
