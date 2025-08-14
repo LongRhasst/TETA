@@ -4,6 +4,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { MezonClient } from 'mezon-sdk';
 import { MezonService } from './mezon.service';
 import { BotGateway } from '../bot/bot.gateway';
+import { KomuReplyListener } from '../listen/komuReply.listener';
 
 @Module({
   imports: [EventEmitterModule],
@@ -22,6 +23,7 @@ import { BotGateway } from '../bot/bot.gateway';
       inject: [ConfigService, Logger],
     },
     BotGateway,
+    KomuReplyListener,
     {
       provide: 'BOT_GATEWAY_INIT',
       useFactory: async (botGateway: BotGateway) => {
