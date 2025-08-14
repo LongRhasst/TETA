@@ -53,10 +53,10 @@ export class KomuReplyListener {
         const ts = new Date().toISOString().replace(/[:.]/g, '-');
         const file = path.join(
           dir,
-          `komu_daily_${isUpdate ? 'update' : 'reply'}_${ts}_${message.message_id ?? 'unknown'}.json`,
+          `komu_${messageType}_${ts}_${message.message_id ?? 'unknown'}.json`,
         );
         const sample = {
-          type: isUpdate ? 'update' : 'reply',
+          type: messageType,
           message_id: message.message_id,
           channel_id: message.channel_id,
           clan_id: message.clan_id,
