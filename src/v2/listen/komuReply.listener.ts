@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { ChannelMessage, Events } from 'mezon-sdk';
+import { ChannelMessage, Events, TypeMessage } from 'mezon-sdk';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 
@@ -15,13 +15,7 @@ export class KomuReplyListener {
       message.username?.toUpperCase?.() === 'KOMU' ||
       message.display_name?.toUpperCase?.() === 'KOMU';
     const isReply = Array.isArray(message.references) && message.references.length > 0;
-    const isUpdate = message.code === 1 || (message.update_time && message.create_time && message.update_time !== message.create_time);
-    
-    // Determine the type based on both conditions
-    const messageType = isUpdate ? 'update' : (isReply ? 'reply' : 'unknown');
-    // console.log(`${message.code}`)
-    // console.log(`${isReply}`)
-    // console.log(`${isUpdate}`);
+    const isUpdate = message.code === TypeMessage.ChatUpdate;
 
     // Parse referenced content if present; it may be JSON string like {"t":"*daily"}
     let refText = '';
