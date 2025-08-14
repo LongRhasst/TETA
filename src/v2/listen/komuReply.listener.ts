@@ -14,17 +14,20 @@ export class KomuReplyListener {
       message.display_name?.toUpperCase?.() === 'KOMU';
     const isReply = Array.isArray(message.references) && message.references.length > 0;
     const isUpdate = message.code === TypeMessage.ChatUpdate;
+    console.log(`${message.code}`)
+    console.log(`${isReply}`)
+    console.log(`${isUpdate}`);
 
     if (isKomu && (isReply || isUpdate)) {
-      console.log('KOMU activity detected:', {
-        type: isUpdate ? 'update' : 'reply',
-        message_id: message.message_id,
-        channel_id: message.channel_id,
-        clan_id: message.clan_id,
-        content,
-        references: message.references,
-        code: message.code,
-      });
+      // console.log('KOMU activity detected:', {
+      //   type: isUpdate ? 'update' : 'reply',
+      //   message_id: message.message_id,
+      //   channel_id: message.channel_id,
+      //   clan_id: message.clan_id,
+      //   content,
+      //   references: message.references,
+      //   code: message.code,
+      // });
 
       // Export sample JSON for cleaning pipeline
       try {
@@ -57,5 +60,3 @@ export class KomuReplyListener {
     }
   }
 }
-
-

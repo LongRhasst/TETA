@@ -107,8 +107,6 @@ export class BotGateway {
   /* cspell:words handlechannelmessage */
   handlechannelmessage = async (msg: ChannelMessage) => {
     console.log('channel message event');
-
-    if (msg.code) return; // ignored edited message
     ['attachments', 'mentions', 'references'].forEach((key) => {
       if (!Array.isArray(msg[key])) msg[key] = [];
     });

@@ -28,7 +28,7 @@ export class FormCommand {
     try {
       const messageContent = message?.content?.t;
       console.log(`Received message: ${messageContent}`);
-
+      
       if (messageContent && messageContent.startsWith('*tomtat ')) {
         const storyToSummarize = messageContent.substring('*tomtat '.length).trim();
         this.logger.log(`Received *tomtat command for: ${storyToSummarize}`);
@@ -37,7 +37,7 @@ export class FormCommand {
         } else {
           await this.mezonService.sendChannelMessage({
             type: 'channel',
-            clan_id: message.clan_id,
+            clan_id: message.clan_id, 
             reply_to_message_id: message.message_id,
             payload: {
               channel_id: message.channel_id,
