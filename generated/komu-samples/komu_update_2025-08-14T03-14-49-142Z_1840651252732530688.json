@@ -1,0 +1,24 @@
+{
+  "type": "update",
+  "message_id": "1840651252732530688",
+  "channel_id": "1955820000266686464",
+  "clan_id": "",
+  "sender_id": "1826067167154540544",
+  "username": "KOMU",
+  "display_name": "",
+  "code": 1,
+  "content_text": "✅ Daily saved.\nDate: 14/08/2025\nYesterday: lấy data từ daily (form and reply message) và lưu ra file json cho Nong clean\nToday: lấy data từ daily (form and reply message) và lưu ra file json cho Nong clean\nBlock: lấy data từ daily (form and reply message) và lưu ra file json cho Nong clean\nWorking time: 8h",
+  "content_raw": {
+    "t": "✅ Daily saved.\nDate: 14/08/2025\nYesterday: lấy data từ daily (form and reply message) và lưu ra file json cho Nong clean\nToday: lấy data từ daily (form and reply message) và lưu ra file json cho Nong clean\nBlock: lấy data từ daily (form and reply message) và lưu ra file json cho Nong clean\nWorking time: 8h",
+    "mk": [
+      {
+        "type": "pre",
+        "s": 0,
+        "e": 307
+      }
+    ]
+  },
+  "references": [],
+  "update_time": "2025-08-14T03:14:50.000Z",
+  "create_time": "2025-08-14T03:14:49.000Z"
+}

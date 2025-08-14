@@ -1,0 +1,212 @@
+{
+  "type": "reply",
+  "message_id": "1840651252732530688",
+  "channel_id": "1955820000266686464",
+  "clan_id": "1779484504377790464",
+  "sender_id": "1826067167154540544",
+  "username": "KOMU",
+  "display_name": "KOMU",
+  "code": 0,
+  "content_text": "",
+  "content_raw": {
+    "t": "",
+    "embed": [
+      {
+        "color": "#1F8B4C",
+        "title": "Daily On 14/08/2025",
+        "fields": [
+          {
+            "name": "Project:",
+            "value": "",
+            "inputs": {
+              "id": "daily-1840651252728336384-project",
+              "type": 2,
+              "component": {
+                "options": [
+                  {
+                    "label": "Company Activities",
+                    "value": "nca"
+                  },
+                  {
+                    "label": "[QN]Training React Native - Nguyen.NP",
+                    "value": "qn-training-react-native-nguyennp"
+                  }
+                ],
+                "required": true,
+                "valueSelected": {
+                  "label": "[QN]Training React Native - Nguyen.NP",
+                  "value": "qn-training-react-native-nguyennp"
+                }
+              }
+            }
+          },
+          {
+            "name": "Yesterday:",
+            "value": "",
+            "inputs": {
+              "id": "daily-1840651252728336384-yesterday-ip",
+              "type": 3,
+              "component": {
+                "id": "daily-1840651252728336384-yesterday-plhder",
+                "placeholder": "Ex. Write something",
+                "required": true,
+                "textarea": true,
+                "defaultValue": ""
+              }
+            }
+          },
+          {
+            "name": "Today:",
+            "value": "",
+            "inputs": {
+              "id": "daily-1840651252728336384-today-ip",
+              "type": 3,
+              "component": {
+                "id": "daily-1840651252728336384-today-plhder",
+                "placeholder": "Ex. Write something",
+                "required": true,
+                "textarea": true,
+                "defaultValue": ""
+              }
+            }
+          },
+          {
+            "name": "Block:",
+            "value": "",
+            "inputs": {
+              "id": "daily-1840651252728336384-block-ip",
+              "type": 3,
+              "component": {
+                "id": "daily-1840651252728336384-block-plhder",
+                "placeholder": "Ex. Write something",
+                "required": true,
+                "textarea": true,
+                "type": 1,
+                "defaultValue": ""
+              }
+            }
+          },
+          {
+            "name": "Working time:",
+            "value": "",
+            "inputs": {
+              "id": "daily-1840651252728336384-working-time",
+              "type": 3,
+              "component": {
+                "id": "daily-1840651252728336384-working-time-plhder",
+                "placeholder": "Ex. Enter Workingtime",
+                "required": true,
+                "defaultValue": 8,
+                "type": "number"
+              }
+            }
+          },
+          {
+            "name": "Task:",
+            "value": "",
+            "inputs": {
+              "id": "daily-1840651252728336384-task",
+              "type": 2,
+              "component": {
+                "options": [
+                  {
+                    "label": "Coding",
+                    "value": "Coding"
+                  },
+                  {
+                    "label": "Testing",
+                    "value": "Testing"
+                  },
+                  {
+                    "label": "Project Management",
+                    "value": "Project Management"
+                  },
+                  {
+                    "label": "Meeting Client",
+                    "value": "Meeting Client"
+                  },
+                  {
+                    "label": "Documenting",
+                    "value": "Documenting"
+                  },
+                  {
+                    "label": "Review Code",
+                    "value": "Review Code"
+                  }
+                ],
+                "required": true,
+                "valueSelected": {
+                  "label": "Coding",
+                  "value": "Coding"
+                }
+              }
+            }
+          },
+          {
+            "name": "Type Of Work:",
+            "value": "",
+            "inputs": {
+              "id": "daily-1840651252728336384-type-of-work",
+              "type": 2,
+              "component": {
+                "options": [
+                  {
+                    "label": "Normal Time",
+                    "value": 0
+                  },
+                  {
+                    "label": "Overtime",
+                    "value": 1
+                  }
+                ],
+                "required": true,
+                "valueSelected": {
+                  "label": "Normal Time",
+                  "value": 0
+                }
+              }
+            }
+          }
+        ],
+        "timestamp": "2025-08-14T03:13:52.525Z",
+        "footer": {
+          "text": "Powered by Mezon",
+          "icon_url": "https://cdn.mezon.vn/1837043892743049216/1840654271217930240/1827994776956309500/857_0246x0w.webp"
+        }
+      }
+    ],
+    "components": [
+      {
+        "components": [
+          {
+            "id": "daily_1840651252728336384_1779484504377790464_6_0_true_1840681632453890048_14/08/2025_cancel",
+            "type": 1,
+            "component": {
+              "label": "Cancel",
+              "style": 2
+            }
+          },
+          {
+            "id": "daily_1840651252728336384_1779484504377790464_6_0_true_1840681632453890048_14/08/2025_submit",
+            "type": 1,
+            "component": {
+              "label": "Submit",
+              "style": 3
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "references": [
+    {
+      "message_ref_id": "1840651252728336384",
+      "content": "{\"t\":\"*daily\"}",
+      "message_sender_id": "1840681632453890048",
+      "message_sender_username": "hieu.nguyentrong1",
+      "mesages_sender_avatar": "https://cdn.mezon.ai/0/1840681632453890048/1840681632453890000/1745375245618_undefinedz6532609781107_8a53ff4f5956eb606f5527246576e516.jpg_croppedWEBP"
+    }
+  ],
+  "update_time": "2025-08-14T03:13:52.000Z",
+  "create_time": "2025-08-14T03:13:52.000Z"
+}
