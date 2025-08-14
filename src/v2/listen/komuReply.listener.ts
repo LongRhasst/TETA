@@ -8,7 +8,9 @@ import * as path from 'path';
 export class KomuReplyListener {
   @OnEvent(Events.ChannelMessage)
   async handleKomuReply(message: ChannelMessage) {
-    const content = message?.content?.t ?? '';
+    const content = typeof (message as any)?.content === 'string'
+      ? (message as any).content
+      : message?.content?.t ?? '';
     const isKomu =
       message.username?.toUpperCase?.() === 'KOMU' ||
       message.display_name?.toUpperCase?.() === 'KOMU';
@@ -18,25 +20,43 @@ export class KomuReplyListener {
     console.log(`${isReply}`)
     console.log(`${isUpdate}`);
 
-    if (isKomu && (isReply || isUpdate)) {
-      // console.log('KOMU activity detected:', {
-      //   type: isUpdate ? 'update' : 'reply',
-      //   message_id: message.message_id,
-      //   channel_id: message.channel_id,
-      //   clan_id: message.clan_id,
-      //   content,
-      //   references: message.references,
-      //   code: message.code,
-      // });
+    // Parse referenced content if present; it may be JSON string like {"t":"*daily"}
+    let refText = '';
+    if (isReply) {
+      const raw = message.references?.[0]?.content ?? '';
+      if (typeof raw === 'string') {
+        try {
+          const parsed = JSON.parse(raw);
+          refText = typeof parsed?.t === 'string' ? parsed.t : raw;
+        } catch {
+          refText = raw;
+        }
+      }
+    }
 
-      // Export sample JSON for cleaning pipeline
+    const hasDailyInContent = /\*daily\b/i.test(content);
+    const looksLikeDailyUpdate = /(daily saved|\bdate:|\byesterday:|\btoday:|\bblock:|\bworking\s*time:)/i.test(content);
+    const hasDailyInRef = /\*daily\b/i.test(refText);
+
+    if (isKomu && (hasDailyInContent || looksLikeDailyUpdate || (isReply && hasDailyInRef))) {
+      console.log('KOMU activity detected:', {
+        type: isUpdate ? 'update' : 'reply',
+        message_id: message.message_id,
+        channel_id: message.channel_id,
+        clan_id: message.clan_id,
+        content,
+        references: message.references,
+        code: message.code,
+      });
+
+      // Export captured data to JSON for further processing
       try {
         const dir = path.resolve(process.cwd(), 'generated', 'komu-samples');
         await fs.mkdir(dir, { recursive: true });
         const ts = new Date().toISOString().replace(/[:.]/g, '-');
         const file = path.join(
           dir,
-          `komu_${isUpdate ? 'update' : 'reply'}_${ts}_${message.message_id ?? 'unknown'}.json`,
+          `komu_daily_${isUpdate ? 'update' : 'reply'}_${ts}_${message.message_id ?? 'unknown'}.json`,
         );
         const sample = {
           type: isUpdate ? 'update' : 'reply',
@@ -48,14 +68,14 @@ export class KomuReplyListener {
           display_name: message.display_name,
           code: message.code,
           content_text: content,
-          content_raw: message.content,
+          content_raw: (message as any).content,
           references: message.references,
-          create_time: message.create_time,
-          update_time: message.update_time,
+          create_time: (message as any).create_time,
+          update_time: (message as any).update_time,
         } as const;
         await fs.writeFile(file, JSON.stringify(sample, null, 2), 'utf8');
       } catch (err) {
-        console.error('Failed to export KOMU sample JSON:', err);
+        console.error('Failed to export KOMU daily JSON:', err);
       }
     }
   }
