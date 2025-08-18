@@ -36,6 +36,9 @@ model data_report {
   reply_data     Json?
   update_data    Json?
   
+  // Validation status
+  is_valid       Boolean   @default(true)
+  
   create_time    DateTime  @default(now())
   update_time    DateTime? @updatedAt
 

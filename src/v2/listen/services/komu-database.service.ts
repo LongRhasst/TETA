@@ -24,6 +24,11 @@ export class KomuDatabaseService {
       ...this.buildBaseData(message, messageId),
     };
 
+    // Check validation status based on message content
+    const messageContent = (message as any).content;
+    const isValid = !this.checkForInvalidTimeFrame(messageContent);
+    completeData.is_valid = isValid;
+
     // Add message type specific data and raw content
     if (messageType === 'reply') {
       try {
@@ -55,9 +60,19 @@ export class KomuDatabaseService {
         completeData.block = outputData.block || null;
         completeData.working_time = outputData['working time'] || null;
         completeData.update_data = (message as any).content;
+        
+        // Check if update data contains invalid time frame (override validation status)
+        if (this.checkForInvalidTimeFrame((message as any).content)) {
+          completeData.is_valid = false;
+        }
       } catch (e) {
         console.log('Could not extract output data from update, continuing...');
         completeData.update_data = (message as any).content;
+        
+        // Also check validation for error case
+        if (this.checkForInvalidTimeFrame((message as any).content)) {
+          completeData.is_valid = false;
+        }
       }
     }
 
@@ -71,7 +86,11 @@ export class KomuDatabaseService {
       create: completeData, // All data for create
     });
 
-    console.log(`✅ Direct upsert completed for ${messageType} message_id: ${messageId}`);
+    console.log(`✅ Direct upsert completed for ${messageType} message_id: ${messageId} (valid: ${completeData.is_valid})`);
+    
+    if (!completeData.is_valid) {
+      console.log(`⚠️  Invalid time frame detected in message_id: ${messageId}`);
+    }
   }
 
   /**
@@ -95,6 +114,7 @@ export class KomuDatabaseService {
       username: report.username,
       display_name: report.display_name,
       sender_username: report.sender_username,
+      is_valid: report.is_valid,
       preferences: {
         project: report.project_label && report.project_value ? {
           label: report.project_label,
@@ -151,6 +171,26 @@ export class KomuDatabaseService {
   }
 
   /**
+   * Get invalid reports (containing time frame errors)
+   */
+  async getInvalidReports() {
+    return await this.prisma.data_report.findMany({
+      where: { is_valid: false },
+      orderBy: { create_time: 'desc' }
+    });
+  }
+
+  /**
+   * Get reports by validation status
+   */
+  async getReportsByValidation(isValid: boolean) {
+    return await this.prisma.data_report.findMany({
+      where: { is_valid: isValid },
+      orderBy: { create_time: 'desc' }
+    });
+  }
+
+  /**
    * Build base data common for all operations - direct assignment without filtering
    */
   private buildBaseData(message: ChannelMessage, messageId: string): KomuMessageData {
@@ -176,5 +216,21 @@ export class KomuDatabaseService {
       }
     });
     return filtered;
+  }
+
+  /**
+   * Check if message contains invalid time frame error
+   */
+  private checkForInvalidTimeFrame(messageContent: any): boolean {
+    if (!messageContent) return false;
+    
+    // Convert to string for checking
+    const contentStr = typeof messageContent === 'string' 
+      ? messageContent 
+      : JSON.stringify(messageContent);
+    
+    // Check for the specific error message
+    const invalidTimeFramePattern = /Invalid daily time frame.*Please daily at.*not daily.*time/i;
+    return invalidTimeFramePattern.test(contentStr);
   }
 }
