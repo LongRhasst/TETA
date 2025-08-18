@@ -1,53 +1,77 @@
 import { Injectable } from '@nestjs/common';
 import { ChannelMessage } from 'mezon-sdk';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { KomuPreferences, KomuOutputData, KomuMessageData } from '../types/komu.types';
+import { KomuMessageData } from '../types/komu.types';
+import { KomuParserService } from './komu-parser.service';
 
 @Injectable()
 export class KomuDatabaseService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly parserService: KomuParserService
+  ) {}
 
   /**
-   * Handle reply message - Insert complete record
+   * Direct upsert without any conditions - simple and straightforward
    */
-  async handleReplyMessage(
+  async upsertDirectly(
     message: ChannelMessage, 
     messageId: string, 
-    preferences: KomuPreferences, 
-    messageSenderUsername?: string
+    messageType: string
   ) {
-    await this.prisma.data_report.create({
-      data: {
-        ...this.buildBaseData(message, messageId),
-        ...this.buildPreferencesData(preferences),
-        ...(messageSenderUsername && { sender_username: messageSenderUsername }),
-        reply_data: (message as any).content,
-      },
+    // Start with base data
+    const completeData: any = {
+      ...this.buildBaseData(message, messageId),
+    };
+
+    // Add message type specific data and raw content
+    if (messageType === 'reply') {
+      try {
+        const preferences = this.parserService.extractPreferences(message);
+        const messageSenderUsername = this.parserService.extractSenderUsername(message);
+        
+        // Add preferences data directly
+        completeData.project_label = preferences.project?.label || null;
+        completeData.project_value = preferences.project?.value || null;
+        completeData.task_label = preferences.task?.label || null;
+        completeData.task_value = preferences.task?.value || null;
+        completeData.work_type = preferences['type of work']?.label || null;
+        completeData.default_working_time = preferences['working time'] || null;
+        completeData.sender_username = messageSenderUsername || null;
+        completeData.reply_data = (message as any).content;
+      } catch (e) {
+        console.log('Could not extract preferences from reply, continuing...');
+        completeData.reply_data = (message as any).content;
+      }
+    } else if (messageType === 'update') {
+      try {
+        const content = this.parserService.getMessageContent(message);
+        const outputData = this.parserService.extractOutputData(content);
+        
+        // Add output data directly
+        completeData.date = outputData.date || null;
+        completeData.yesterday = outputData.yesterday || null;
+        completeData.today = outputData.today || null;
+        completeData.block = outputData.block || null;
+        completeData.working_time = outputData['working time'] || null;
+        completeData.update_data = (message as any).content;
+      } catch (e) {
+        console.log('Could not extract output data from update, continuing...');
+        completeData.update_data = (message as any).content;
+      }
+    }
+
+    // Filter out null/undefined values for update operation
+    const updateData = this.filterNullValues(completeData);
+
+    // Upsert with filtered data for update, complete data for create
+    await this.prisma.data_report.upsert({
+      where: { message_id: messageId },
+      update: updateData, // Only non-null values for update
+      create: completeData, // All data for create
     });
 
-    console.log(`✅ Inserted complete reply record for message_id: ${messageId}`);
-    if (messageSenderUsername) {
-      console.log(`📝 Captured sender username: ${messageSenderUsername}`);
-    }
-  }
-
-  /**
-   * Handle update message - Override and fill null fields
-   */
-  async handleUpdateMessage(
-    message: ChannelMessage, 
-    messageId: string, 
-    outputData: KomuOutputData
-  ) {
-    const currentRecord = await this.prisma.data_report.findUnique({
-      where: { message_id: messageId }
-    });
-
-    if (currentRecord) {
-      await this.updateExistingRecord(message, messageId, outputData, currentRecord);
-    } else {
-      await this.createRecordFromUpdate(message, messageId, outputData);
-    }
+    console.log(`✅ Direct upsert completed for ${messageType} message_id: ${messageId}`);
   }
 
   /**
@@ -127,51 +151,7 @@ export class KomuDatabaseService {
   }
 
   /**
-   * Update existing record with override and null-fill logic
-   */
-  private async updateExistingRecord(
-    message: ChannelMessage, 
-    messageId: string, 
-    outputData: KomuOutputData, 
-    currentRecord: any
-  ) {
-    const updateFields = {
-      ...this.buildOutputData(outputData),
-      ...this.buildNullFillData(message, currentRecord),
-      update_data: (message as any).content,
-    };
-
-    await this.prisma.data_report.update({
-      where: { message_id: messageId },
-      data: updateFields,
-    });
-
-    console.log(`✅ Updated record with override and null-fill for message_id: ${messageId}`);
-    if (outputData.date) {
-      console.log(`📅 Processed date: ${outputData.date}`);
-    }
-  }
-
-  /**
-   * Create new record from update data only
-   */
-  private async createRecordFromUpdate(
-    message: ChannelMessage, 
-    messageId: string, 
-    outputData: KomuOutputData
-  ) {
-    await this.prisma.data_report.create({
-      data: {
-        ...this.buildBaseData(message, messageId),
-        ...this.buildOutputData(outputData),
-        update_data: (message as any).content,
-      },
-    });
-    console.log(`✅ Created new record from update data for message_id: ${messageId}`);
-  }
-
-  /**
-   * Build base data common for all operations
+   * Build base data common for all operations - direct assignment without filtering
    */
   private buildBaseData(message: ChannelMessage, messageId: string): KomuMessageData {
     return {
@@ -179,50 +159,22 @@ export class KomuDatabaseService {
       username: message.username || '',
       channel_id: message.channel_id || '',
       clan_id: message.clan_id || '',
-      ...(message.sender_id && { sender_id: message.sender_id }),
-      ...(message.display_name && { display_name: message.display_name }),
+      sender_id: message.sender_id || undefined,
+      display_name: message.display_name || undefined,
     };
   }
 
   /**
-   * Build preferences data from reply message
+   * Filter out null, undefined, and empty string values from object
    */
-  private buildPreferencesData(preferences: KomuPreferences) {
-    return {
-      ...(preferences.project?.label && { project_label: preferences.project.label }),
-      ...(preferences.project?.value && { project_value: preferences.project.value }),
-      ...(preferences.task?.label && { task_label: preferences.task.label }),
-      ...(preferences.task?.value && { task_value: preferences.task.value }),
-      ...(preferences['type of work']?.label && { work_type: preferences['type of work'].label }),
-      ...(preferences['working time'] && { default_working_time: preferences['working time'] }),
-    };
-  }
-
-  /**
-   * Build output data from update message
-   */
-  private buildOutputData(outputData: KomuOutputData) {
-    return {
-      ...(outputData.date && { date: outputData.date }),
-      ...(outputData.yesterday && { yesterday: outputData.yesterday }),
-      ...(outputData.today && { today: outputData.today }),
-      ...(outputData.block && { block: outputData.block }),
-      ...(outputData['working time'] && { working_time: outputData['working time'] }),
-    };
-  }
-
-  /**
-   * Build data to fill null fields only
-   */
-  private buildNullFillData(message: ChannelMessage, currentRecord: any) {
-    const fillData: any = {};
-    
-    if (!currentRecord.sender_id && message.sender_id) fillData.sender_id = message.sender_id;
-    if (!currentRecord.display_name && message.display_name) fillData.display_name = message.display_name;
-    if (!currentRecord.username && message.username) fillData.username = message.username;
-    if (!currentRecord.channel_id && message.channel_id) fillData.channel_id = message.channel_id;
-    if (!currentRecord.clan_id && message.clan_id) fillData.clan_id = message.clan_id;
-    
-    return fillData;
+  private filterNullValues(obj: any): any {
+    const filtered: any = {};
+    Object.keys(obj).forEach(key => {
+      const value = obj[key];
+      if (value !== null && value !== undefined && value !== '') {
+        filtered[key] = value;
+      }
+    });
+    return filtered;
   }
 }

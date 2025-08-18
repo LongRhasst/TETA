@@ -3,14 +3,12 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { ChannelMessage, Events } from 'mezon-sdk';
 import { KomuParserService } from './services/komu-parser.service';
 import { KomuDatabaseService } from './services/komu-database.service';
-import { KomuExportService } from './services/komu-export.service';
 
 @Injectable()
 export class KomuReplyListener {
   constructor(
     private readonly parserService: KomuParserService,
     private readonly databaseService: KomuDatabaseService,
-    private readonly exportService: KomuExportService,
   ) {}
 
   @OnEvent(Events.ChannelMessage)
@@ -36,9 +34,6 @@ export class KomuReplyListener {
       // Save to database
       await this.saveToDatabase(message, messageType);
       
-      // Export to JSON for backup/debugging
-      // await this.exportService.exportToJson(message, messageType);
-      
       return message.message_id;
     } catch (err) {
       console.error('Failed to save KOMU daily data:', err);
@@ -46,28 +41,14 @@ export class KomuReplyListener {
   }
 
   /**
-   * Save message data to database based on message type
+   * Save message data to database using direct upsert
    */
   private async saveToDatabase(message: ChannelMessage, messageType: string) {
     const messageId = message.message_id;
     if (!messageId) return;
 
-    if (messageType === 'reply') {
-      const preferences = this.parserService.extractPreferences(message);
-      const messageSenderUsername = this.parserService.extractSenderUsername(message);
-      
-      await this.databaseService.handleReplyMessage(
-        message, 
-        messageId, 
-        preferences, 
-        messageSenderUsername
-      );
-    } else if (messageType === 'update') {
-      const content = this.parserService.getMessageContent(message);
-      const outputData = this.parserService.extractOutputData(content);
-      
-      await this.databaseService.handleUpdateMessage(message, messageId, outputData);
-    }
+    // Direct upsert without any conditions
+    await this.databaseService.upsertDirectly(message, messageId, messageType);
   }
 
   // Delegate methods to database service
