@@ -5,11 +5,13 @@ import { MezonClient } from 'mezon-sdk';
 import { MezonService } from './mezon.service';
 import { BotGateway } from '../bot/bot.gateway';
 import { KomuReplyListener } from '../listen/komuReply.listener';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Module({
   imports: [EventEmitterModule],
   providers: [
     Logger,
+    PrismaService,
     {
       provide: 'MEZON',
       useFactory: async (configService: ConfigService, logger: Logger) => {

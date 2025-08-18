@@ -1,0 +1,16 @@
+-- AlterTable
+ALTER TABLE `data_reports` ADD COLUMN `date` VARCHAR(191) NULL,
+    ADD COLUMN `default_working_time` INTEGER NULL,
+    ADD COLUMN `display_name` VARCHAR(191) NULL,
+    ADD COLUMN `project_label` VARCHAR(191) NULL,
+    ADD COLUMN `project_value` VARCHAR(191) NULL,
+    ADD COLUMN `reply_data` JSON NULL,
+    ADD COLUMN `sender_id` VARCHAR(191) NULL,
+    ADD COLUMN `task_label` VARCHAR(191) NULL,
+    ADD COLUMN `task_value` VARCHAR(191) NULL,
+    ADD COLUMN `update_data` JSON NULL,
+    ADD COLUMN `work_type` VARCHAR(191) NULL,
+    ADD COLUMN `working_time` VARCHAR(191) NULL,
+    MODIFY `block` VARCHAR(191) NULL,
+    MODIFY `today` VARCHAR(191) NULL,
+    MODIFY `yesterday` VARCHAR(191) NULL;
