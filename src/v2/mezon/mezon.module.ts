@@ -4,14 +4,12 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { MezonClient } from 'mezon-sdk';
 import { MezonService } from './mezon.service';
 import { BotGateway } from '../bot/bot.gateway';
-import { KomuReplyListener } from '../listen/komuReply.listener';
-import { PrismaService } from '../../prisma/prisma.service';
+import { KomuListenerModule } from '../listen/komu-listener.module';
 
 @Module({
-  imports: [EventEmitterModule],
+  imports: [EventEmitterModule, KomuListenerModule],
   providers: [
     Logger,
-    PrismaService,
     {
       provide: 'MEZON',
       useFactory: async (configService: ConfigService, logger: Logger) => {
@@ -25,7 +23,6 @@ import { PrismaService } from '../../prisma/prisma.service';
       inject: [ConfigService, Logger],
     },
     BotGateway,
-    KomuReplyListener,
     {
       provide: 'BOT_GATEWAY_INIT',
       useFactory: async (botGateway: BotGateway) => {
@@ -36,6 +33,6 @@ import { PrismaService } from '../../prisma/prisma.service';
     },
     MezonService,
   ],
-  exports: ['MEZON', MezonService, BotGateway],
+  exports: ['MEZON', MezonService, BotGateway, KomuListenerModule],
 })
 export class MezonModule {}

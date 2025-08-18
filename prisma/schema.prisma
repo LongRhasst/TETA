@@ -15,7 +15,8 @@ model data_report {
   clan_id        String
   sender_id      String?
   display_name   String?
-  
+  sender_username String?
+
   // Preferences from reply message (form inputs)
   project_label  String?
   project_value  String?
@@ -25,7 +26,7 @@ model data_report {
   default_working_time Int?
   
   // Output data from update message
-  date           String?
+  date           DateTime? @db.Date
   yesterday      String?
   today          String?
   block          String?
@@ -37,6 +38,8 @@ model data_report {
   
   create_time    DateTime  @default(now())
   update_time    DateTime? @updatedAt
+
+  @@index([create_time])
 
   @@map("data_reports")
 }
