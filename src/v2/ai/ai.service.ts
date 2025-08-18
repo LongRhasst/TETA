@@ -6,7 +6,7 @@ import { ChatPromptTemplate } from '@langchain/core/prompts';
 export class AiService {
   constructor(@Inject('AI') private readonly ai: ChatDeepSeek) {}
 
-    async generateSummarizeReport() {
+    async generateSummarizeReport(input: string): Promise<string> {
       const prompt = ChatPromptTemplate.fromMessages([
         [
           'system',
@@ -61,6 +61,17 @@ export class AiService {
           `
         ]
       ]);
+
+      const chain = prompt.pipe(this.ai);
+      const result = await chain.invoke({ input });
+
+      if (typeof result.content === 'string') {
+        return result.content;
+      } else if (result.content && typeof result.content === 'object' && 't' in result.content) {
+        return (result.content as { t: string }).t;
+      } else {
+        return JSON.stringify(result.content);
+      }
     }
 
     async generateCompare(req: string): Promise<string> {
