@@ -26,8 +26,8 @@ export class KomuDatabaseService {
 
     // Check validation status based on message content
     const messageContent = (message as any).content;
-    const isValid = !this.checkForInvalidTimeFrame(messageContent);
-    completeData.is_valid = isValid;
+    const hasInvalidTimeFrame = this.checkForInvalidTimeFrame(messageContent);
+    completeData.daily_late = hasInvalidTimeFrame; // true if invalid/late, false if valid/on-time
 
     // Add message type specific data and raw content
     if (messageType === 'reply') {
@@ -61,9 +61,9 @@ export class KomuDatabaseService {
         completeData.working_time = outputData['working time'] || null;
         completeData.update_data = (message as any).content;
         
-        // Check if update data contains invalid time frame (override validation status)
+        // Check if update data contains invalid time frame (set as late if invalid)
         if (this.checkForInvalidTimeFrame((message as any).content)) {
-          completeData.is_valid = false;
+          completeData.daily_late = true;
         }
       } catch (e) {
         console.log('Could not extract output data from update, continuing...');
@@ -71,7 +71,7 @@ export class KomuDatabaseService {
         
         // Also check validation for error case
         if (this.checkForInvalidTimeFrame((message as any).content)) {
-          completeData.is_valid = false;
+          completeData.daily_late = false;
         }
       }
     }
@@ -86,9 +86,9 @@ export class KomuDatabaseService {
       create: completeData, // All data for create
     });
 
-    console.log(`✅ Direct upsert completed for ${messageType} message_id: ${messageId} (valid: ${completeData.is_valid})`);
+    console.log(`✅ Direct upsert completed for ${messageType} message_id: ${messageId} (late: ${completeData.daily_late})`);
     
-    if (!completeData.is_valid) {
+    if (completeData.daily_late) {
       console.log(`⚠️  Invalid time frame detected in message_id: ${messageId}`);
     }
   }
@@ -114,7 +114,7 @@ export class KomuDatabaseService {
       username: report.username,
       display_name: report.display_name,
       sender_username: report.sender_username,
-      is_valid: report.is_valid,
+      daily_late: report.daily_late,
       preferences: {
         project: report.project_label && report.project_value ? {
           label: report.project_label,
@@ -175,7 +175,7 @@ export class KomuDatabaseService {
    */
   async getInvalidReports() {
     return await this.prisma.data_report.findMany({
-      where: { is_valid: false },
+      where: { daily_late: false },
       orderBy: { create_time: 'desc' }
     });
   }
@@ -185,7 +185,7 @@ export class KomuDatabaseService {
    */
   async getReportsByValidation(isValid: boolean) {
     return await this.prisma.data_report.findMany({
-      where: { is_valid: isValid },
+      where: { daily_late: isValid },
       orderBy: { create_time: 'desc' }
     });
   }

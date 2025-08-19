@@ -1,0 +1,4 @@
+{
+    "workbench.settings.useSplitJSON": true,
+    "js/ts.implicitProjectConfig.strictFunctionTypes": false
+}

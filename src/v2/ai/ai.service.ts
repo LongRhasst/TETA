@@ -5,6 +5,7 @@ import {
   SUMMARIZE_REPORT_SYSTEM_PROMPT,
   SUMMARIZE_REPORT_USER_PROMPT,
 } from './prompts';
+import { trainingExamples, promptTrainingExamples } from './trainning/training-IO';
 
 @Injectable()
 export class AiService {
@@ -22,18 +23,47 @@ export class AiService {
     return this.formatResponse(result);
   }
 
-  // async generateCompare(req: string): Promise<string> {
-  //   const prompt = ChatPromptTemplate.fromMessages([
-  //     ['system', COMPARE_SYSTEM_PROMPT],
-  //     ['user', COMPARE_USER_PROMPT],
-  //     ['assistant', COMPARE_ASSISTANT_PROMPT],
-  //   ]);
+  /**
+   * Get training examples for improving AI responses
+   */
+  getTrainingExamples() {
+    return trainingExamples;
+  }
 
-  //   const chain = prompt.pipe(this.ai);
-  //   const result = await chain.invoke({ input: req });
+  /**
+   * Get prompt training guidelines
+   */
+  getPromptTrainingGuidelines() {
+    return promptTrainingExamples;
+  }
 
-  //   return this.formatResponse(result);
-  // }
+  /**
+   * Generate report with training context for better output
+   */
+  async generateSummarizeReportWithTraining(input: string): Promise<string> {
+    // Enhanced prompt with training context
+    const enhancedSystemPrompt = `${SUMMARIZE_REPORT_SYSTEM_PROMPT}
+
+IMPORTANT: Follow these output guidelines:
+- Use clear structure with headers (# ## ###)
+- Include emojis for visual organization (📊 📈 🎯 ✅ ⚠️)
+- Provide specific metrics and percentages
+- End with actionable recommendations
+- Focus on insights, not just data summary
+
+Example of good output structure:
+${trainingExamples.weeklyReportTraining.expectedOutput.substring(0, 500)}...`;
+
+    const prompt = ChatPromptTemplate.fromMessages([
+      ['system', enhancedSystemPrompt],
+      ['user', SUMMARIZE_REPORT_USER_PROMPT],
+    ]);
+
+    const chain = prompt.pipe(this.ai);
+    const result = await chain.invoke({ input });
+
+    return this.formatResponse(result);
+  }
 
   /**
    * Format the AI response to ensure consistent string output
