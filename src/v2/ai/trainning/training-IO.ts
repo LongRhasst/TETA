@@ -31,7 +31,7 @@ export const trainingExamples = {
     "working_time": "8 hours",
     "reply_data": {"content": "Daily report form submitted"},
     "update_data": {"content": "Daily report completed successfully"},
-    "is_valid": true,
+    "daily_late": false,
     "create_time": "2025-08-18T05:02:03.675Z",
     "update_time": "2025-08-18T10:30:00.000Z"
   },
@@ -56,7 +56,7 @@ export const trainingExamples = {
     "working_time": "7.5 hours",
     "reply_data": {"content": "Daily report form submitted"},
     "update_data": {"content": "Daily report completed successfully"},
-    "is_valid": true,
+    "daily_late": false,
     "create_time": "2025-08-18T05:26:33.611Z",
     "update_time": "2025-08-18T11:15:00.000Z"
   },
@@ -81,7 +81,7 @@ export const trainingExamples = {
     "working_time": null,
     "reply_data": {"content": "Daily report form submitted"},
     "update_data": {"content": "Invalid daily time frame. Please daily at 7h30-17h. not daily 20k/time."},
-    "is_valid": true,
+    "daily_late": true,
     "create_time": "2025-08-18T06:45:12.890Z",
     "update_time": "2025-08-18T12:00:00.000Z"
   }
@@ -90,12 +90,12 @@ export const trainingExamples = {
     expectedOutput: `# Weekly Team Report
 **Period:** August 12-18, 2025
 **Team Size:** 3 members
-**Report Status:** 100% valid submissions
+**Report Status:** 67% valid submissions (1 invalid report detected)
 
 ## 📊 Summary Metrics
-- **Total Working Hours:** 15.5 hours
+- **Total Working Hours:** 15.5 hours (from valid reports)
 - **Average per Person:** 7.75 hours
-- **Completion Rate:** 100%
+- **Completion Rate:** 67% (2 valid, 1 invalid)
 - **Active Blockers:** 2 items
 
 ## 👥 Individual Performance
@@ -130,6 +130,17 @@ export const trainingExamples = {
 
 **Status:** On track, good design progress
 
+### Bob Wilson - QA Tester
+**Working Time:** Not available (invalid report)
+**Report Status:** ❌ **Invalid submission**
+**Error:** Time format error - entered "20k/time" instead of hours
+**Issue:** Contains "Invalid daily time frame" error message
+
+**Required Action:** 
+- ⚠️ **Immediate correction needed**
+- Change "20k/time" → "8 hours" format
+- Resubmit daily report with proper time format
+
 ## 🚀 Team Progress
 **Completed This Week:**
 - User authentication system (Backend)
@@ -144,12 +155,15 @@ export const trainingExamples = {
 ## ⚠️ Action Items
 1. **UI Team:** Approve design for John's features
 2. **Backend:** Provide API documentation for Jane
-3. **Team:** Schedule integration planning meeting
+3. **Bob Wilson:** Correct time format and resubmit daily report
+4. **Team:** Schedule integration planning meeting
 
 ## 📈 Recommendations
+- **Immediate:** Fix Bob's report format issue
 - Consider daily standup to resolve blockers faster
 - Create shared API documentation space
-- Set up design approval workflow`
+- Set up design approval workflow
+- Implement input validation for time fields to prevent format errors`
   },
 
   /**
@@ -228,13 +242,13 @@ export const trainingExamples = {
 //     "username": "bob.wilson",
 //     "error": "Invalid daily time frame. Please daily at 7h30-17h. not daily 20k/time.",
 //     "date": "2025-08-18",
-//     "is_valid": false
+//     "daily_late": false
 //   },
 //   {
 //     "username": "alice.brown", 
 //     "error": "Invalid daily time frame. Please daily at 8h00-18h. not daily 20k/time.",
 //     "date": "2025-08-18",
-//     "is_valid": false
+//     "daily_late": false
 //   }
 // ]`,
 

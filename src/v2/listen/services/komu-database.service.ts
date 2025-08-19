@@ -71,7 +71,7 @@ export class KomuDatabaseService {
         
         // Also check validation for error case
         if (this.checkForInvalidTimeFrame((message as any).content)) {
-          completeData.daily_late = false;
+          completeData.daily_late = true;
         }
       }
     }
@@ -175,7 +175,7 @@ export class KomuDatabaseService {
    */
   async getInvalidReports() {
     return await this.prisma.data_report.findMany({
-      where: { daily_late: false },
+      where: { daily_late: true },
       orderBy: { create_time: 'desc' }
     });
   }
@@ -185,7 +185,7 @@ export class KomuDatabaseService {
    */
   async getReportsByValidation(isValid: boolean) {
     return await this.prisma.data_report.findMany({
-      where: { daily_late: isValid },
+      where: { daily_late: !isValid }, // daily_late true = invalid, false = valid
       orderBy: { create_time: 'desc' }
     });
   }
