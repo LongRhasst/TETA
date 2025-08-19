@@ -1,11 +1,11 @@
-// Test script to demonstrate querying KOMU daily data from database
+// Test script to demonstrate querying daily data from database
 const { PrismaClient } = require('./generated/prisma');
 
 async function testKomuDatabase() {
   const prisma = new PrismaClient();
   
   try {
-    console.log('🔍 Testing KOMU database functionality...\n');
+    console.log('🔍 Testing daily database functionality...\n');
     
     // Get all reports
     const allReports = await prisma.data_report.findMany({
@@ -13,10 +13,10 @@ async function testKomuDatabase() {
       take: 5 // Get latest 5 reports
     });
     
-    console.log(`📊 Found ${allReports.length} KOMU daily reports:`);
+    console.log(`📊 Found ${allReports.length} daily reports:`);
     allReports.forEach((report, index) => {
       console.log(`\n${index + 1}. Message ID: ${report.message_id}`);
-      console.log(`   User: ${report.username}`);
+      console.log(`   Member: ${report.member || 'N/A'}`);
       console.log(`   Date: ${report.date || 'N/A'}`);
       console.log(`   Project: ${report.project_label || 'N/A'}`);
       console.log(`   Task: ${report.task_label || 'N/A'}`);

@@ -23,12 +23,11 @@ export interface KomuOutputData {
 
 export interface KomuMessageData {
   message_id: string;
-  username: string;
   channel_id: string;
   clan_id: string;
   sender_id?: string;
   display_name?: string;
-  sender_username?: string;
+  member?: string;
 }
 
 export type MessageType = 'reply' | 'update' | 'unknown';

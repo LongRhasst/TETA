@@ -23,6 +23,8 @@ export class KomuReplyListener {
     console.log('KOMU daily activity detected:', {
       type: messageType,
       message_id: message.message_id,
+      username: message.username,
+      display_name: message.display_name,
       channel_id: message.channel_id,
       clan_id: message.clan_id,
       content: this.parserService.getMessageContent(message),
@@ -36,7 +38,7 @@ export class KomuReplyListener {
       
       return message.message_id;
     } catch (err) {
-      console.error('Failed to save KOMU daily data:', err);
+      console.error('Failed to save daily data:', err);
     }
   }
 
@@ -60,8 +62,8 @@ export class KomuReplyListener {
     return this.databaseService.getAllReports();
   }
 
-  async getReportsByUser(username: string) {
-    return this.databaseService.getReportsByUser(username);
+  async getReportsByMember(member: string) {
+    return this.databaseService.getReportsByMember(member);
   }
 
   async getReportsByChannel(channelId: string) {

@@ -134,12 +134,13 @@ export class KomuParserService {
         const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed in Date constructor
         const year = parseInt(parts[2], 10);
         
-        const date = new Date(year, month, day);
+        // Create date in UTC to avoid timezone issues when storing in database
+        const date = new Date(Date.UTC(year, month, day));
         
-        // Validate the date
-        if (date.getFullYear() === year && 
-            date.getMonth() === month && 
-            date.getDate() === day) {
+        // Validate the date using UTC methods
+        if (date.getUTCFullYear() === year && 
+            date.getUTCMonth() === month && 
+            date.getUTCDate() === day) {
           return date;
         }
       }

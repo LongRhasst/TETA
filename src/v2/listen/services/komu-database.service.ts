@@ -42,7 +42,7 @@ export class KomuDatabaseService {
         completeData.task_value = preferences.task?.value || null;
         completeData.work_type = preferences['type of work']?.label || null;
         completeData.default_working_time = preferences['working time'] || null;
-        completeData.sender_username = messageSenderUsername || null;
+        completeData.member = messageSenderUsername || null;
         completeData.reply_data = (message as any).content;
       } catch (e) {
         console.log('Could not extract preferences from reply, continuing...');
@@ -111,9 +111,8 @@ export class KomuDatabaseService {
       channel_id: report.channel_id,
       clan_id: report.clan_id,
       sender_id: report.sender_id,
-      username: report.username,
       display_name: report.display_name,
-      sender_username: report.sender_username,
+      member: report.member,
       daily_late: report.daily_late,
       preferences: {
         project: report.project_label && report.project_value ? {
@@ -151,11 +150,11 @@ export class KomuDatabaseService {
   }
 
   /**
-   * Get reports by username
+   * Get reports by member
    */
-  async getReportsByUser(username: string) {
+  async getReportsByMember(member: string) {
     return await this.prisma.data_report.findMany({
-      where: { username },
+      where: { member },
       orderBy: { create_time: 'desc' }
     });
   }
@@ -196,7 +195,6 @@ export class KomuDatabaseService {
   private buildBaseData(message: ChannelMessage, messageId: string): KomuMessageData {
     return {
       message_id: messageId,
-      username: message.username || '',
       channel_id: message.channel_id || '',
       clan_id: message.clan_id || '',
       sender_id: message.sender_id || undefined,

@@ -10,12 +10,11 @@ datasource db {
 
 model data_report {
   message_id     String    @id
-  username       String
   channel_id     String
   clan_id        String
   sender_id      String?
   display_name   String?
-  sender_username String?
+  member         String?
 
   // Preferences from reply message (form inputs)
   project_label  String?

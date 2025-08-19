@@ -87,83 +87,83 @@ export const trainingExamples = {
   }
 ]`,
 
-    expectedOutput: `# Weekly Team Report
-**Period:** August 12-18, 2025
-**Team Size:** 3 members
-**Report Status:** 67% valid submissions (1 invalid report detected)
+    expectedOutput: `# 📊 Báo Cáo Tổng Quan Team
+**Thời gian:** 12-18 Tháng 8, 2025
+**Số thành viên:** 3 người
+**Tỷ lệ báo cáo hợp lệ:** 67% (2 hợp lệ, 1 không hợp lệ)
 
-## 📊 Summary Metrics
-- **Total Working Hours:** 15.5 hours (from valid reports)
-- **Average per Person:** 7.75 hours
-- **Completion Rate:** 67% (2 valid, 1 invalid)
-- **Active Blockers:** 2 items
+## � Metrics Tổng Quan
+- **Tổng giờ làm việc:** 15.5 giờ (từ báo cáo hợp lệ)
+- **Trung bình mỗi người:** 7.75 giờ
+- **Tỷ lệ hoàn thành:** 67% (2 hợp lệ, 1 không hợp lệ)
+- **Số blockers đang có:** 2 vấn đề
 
-## 👥 Individual Performance
+## 👥 Hiệu Suất Cá Nhân
 
 ### John Doe - Backend Developer
-**Working Time:** 8 hours
-**Yesterday's Achievements:**
-- ✅ Completed user authentication API
-- ✅ Fixed database connection bug
+**Thời gian làm việc:** 8 giờ
+**Thành tựu hôm qua:**
+- ✅ Hoàn thành user authentication API
+- ✅ Sửa lỗi database connection
 
-**Today's Plan:**
-- 🎯 Implement password reset feature
-- 🎯 Write unit tests
+**Kế hoạch hôm nay:**
+- 🎯 Triển khai tính năng reset password
+- 🎯 Viết unit tests
 
-**Current Blockers:**
-- ⏳ Waiting for design approval from UI team
+**Blockers hiện tại:**
+- ⏳ Chờ UI team approve design
 
-**Status:** On track, productive output
+**Trạng thái:** Đúng tiến độ, output tốt
 
 ### Jane Smith - Frontend Developer  
-**Working Time:** 7.5 hours
-**Yesterday's Achievements:**
-- ✅ Designed login page mockups
-- ✅ Created responsive layout
+**Thời gian làm việc:** 7.5 giờ
+**Thành tựu hôm qua:**
+- ✅ Thiết kế mockups trang login
+- ✅ Tạo responsive layout
 
-**Today's Plan:**
-- 🎯 Code login form
-- 🎯 Integrate with backend API
+**Kế hoạch hôm nay:**
+- 🎯 Code form login
+- 🎯 Tích hợp với backend API
 
-**Current Blockers:**
-- ⏳ Need API documentation
+**Blockers hiện tại:**
+- ⏳ Cần tài liệu API
 
-**Status:** On track, good design progress
+**Trạng thái:** Đúng tiến độ, tiến độ design tốt
 
 ### Bob Wilson - QA Tester
-**Working Time:** Not available (invalid report)
-**Report Status:** ❌ **Invalid submission**
-**Error:** Time format error - entered "20k/time" instead of hours
-**Issue:** Contains "Invalid daily time frame" error message
+**Thời gian làm việc:** Không có (báo cáo không hợp lệ)
+**Trạng thái báo cáo:** ❌ **Submission không hợp lệ**
+**Lỗi:** Lỗi định dạng thời gian - nhập "20k/time" thay vì số giờ
+**Vấn đề:** Chứa thông báo lỗi "Invalid daily time frame"
 
-**Required Action:** 
-- ⚠️ **Immediate correction needed**
-- Change "20k/time" → "8 hours" format
-- Resubmit daily report with proper time format
+**Hành động cần thiết:** 
+- ⚠️ **Cần sửa ngay lập tức**
+- Đổi "20k/time" → format "8 giờ"
+- Submit lại daily report với định dạng thời gian đúng
 
-## 🚀 Team Progress
-**Completed This Week:**
-- User authentication system (Backend)
-- Login page design (Frontend)
-- Database optimization
+## 🚀 Tiến Độ Team
+**Đã hoàn thành tuần này:**
+- Hệ thống user authentication (Backend)
+- Thiết kế trang login (Frontend)
+- Tối ưu hóa database
 
-**In Progress:**
-- Password reset feature
-- Frontend integration
-- API documentation
+**Đang thực hiện:**
+- Tính năng password reset
+- Tích hợp Frontend
+- Tài liệu API
 
-## ⚠️ Action Items
-1. **UI Team:** Approve design for John's features
-2. **Backend:** Provide API documentation for Jane
-3. **Bob Wilson:** Correct time format and resubmit daily report
-4. **Team:** Schedule integration planning meeting
+## ⚠️ Vấn Đề Cần Xử Lý
+1. **UI Team:** Approve design cho features của John
+2. **Backend:** Cung cấp tài liệu API cho Jane
+3. **Bob Wilson:** Sửa định dạng báo cáo và submit lại
+4. **Team:** Lên lịch meeting planning tích hợp
 
-## 📈 Recommendations
-- **Immediate:** Fix Bob's report format issue
-- Consider daily standup to resolve blockers faster
-- Create shared API documentation space
-- Set up design approval workflow
-- Implement input validation for time fields to prevent format errors`
+## 🎯 Khuyến Nghị & Hành Động
+- **Ngay lập tức:** Sửa lỗi báo cáo của Bob
+- Xem xét daily standup để giải quyết blockers nhanh hơn
+- Tạo không gian tài liệu API chung
+- Thiết lập quy trình approve design
+- Triển khai input validation cho trường thời gian để tránh lỗi định dạng`
   },
 
   /**
