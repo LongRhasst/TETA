@@ -1,159 +1,74 @@
 import { ChatDeepSeek } from '@langchain/deepseek';
 import { Inject, Injectable } from '@nestjs/common';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
+import {
+  SUMMARIZE_REPORT_SYSTEM_PROMPT,
+  SUMMARIZE_REPORT_USER_PROMPT,
+} from './prompts';
+import { trainingExamples, promptTrainingExamples } from './trainning/training-IO';
 
 @Injectable()
 export class AiService {
   constructor(@Inject('AI') private readonly ai: ChatDeepSeek) {}
 
-    async generateSummarizeReport() {
-      const prompt = ChatPromptTemplate.fromMessages([
-        [
-          'system',
-          `You are a Data Engineer in an IT team which is comparing the work-daily report and timesheet working report day by day of each team member for a weekly report.
-          your task is to summarize the 7 days daily report of each member get from database report into a single JSON object.
-          Follow these rules strictly:` 
-        ],
-        [
-          'user',
-          `### Daily Report format:
-          - *daily {date}*
-          Project: <Project id>
-          Yesterday: <Summary of yesterday's work>
-          Today: <Summary of today's work>
-          Block: <List of blocks encountered>
-          
-          ### Timesheet format:
-          - Timesheet {date}
-          Project: <Project id>
-          Task: <Task id>
-          Note: <Description of the task worked on that day>
-          Time: <Working time for the task>
-          Type: <'normal' or 'overtime'>
-          
-          ### Output Requirements:
-          Return JSON in the following structure:
-          {
-            "project_id": "<Project id>",
-            "date": "<date>",
-            "summary": {
-              "yesterday": "<Summary of yesterday's work>",
-              "today": "<Summary of today's work>"
-            },
-            "blocks": ["<List of blocks encountered>"],
-            "timesheet": [
-              {
-                "task_id": "<Task id>",
-                "note": "<Description of the task worked on that day>",
-                "time": "<Working time for the task>",
-                "type": "<'normal' or 'overtime'>"
-              }
-            ]
-          }
-          
-          ### Additional instructions:
-          - Ensure no duplicate tasks or notes in the final output.
-          - Keep summaries concise but informative.
-          - If there are multiple projects in the input, return an array of JSON objects, one per project.
-          
-          ### Input data:
-          {input}
-          `
-        ]
-      ]);
-    }
-
-    async generateCompare(req: string): Promise<string> {
-      const prompt = ChatPromptTemplate.fromMessages([
-        [
-          'system',
-          `You are a helpful assistant for a Project Manager in an IT team. 
-          Your task is to merge two related daily work reports:
-          1. The Daily Report
-          2. The Timesheet
-          
-          Follow these rules strictly:
-          - Identify matching records by Project ID and Date.
-          - Remove duplicate content (case-insensitive, ignore minor wording differences).
-          - Merge complementary details from both reports without losing any unique information.
-          - If conflicting data appears, prefer Timesheet details for task-specific info, 
-            and Daily Report details for high-level progress.
-          - If any field is missing, output null for that field.
-          - Output only valid JSON, without extra commentary or formatting.
-          `
-        ],
-        [
-          'user',
-          `### Daily Report format:
-          - *daily {date}*
-          Project: <Project id>
-          Yesterday: <Summary of yesterday's work>
-          Today: <Summary of today's work>
-          Block: <List of blocks encountered>
-          
-          ### Timesheet format:
-          - Timesheet {date}
-          Project: <Project id>
-          Task: <Task id>
-          Note: <Description of the task worked on that day>
-          Time: <Working time for the task>
-          Type: <'normal' or 'overtime'>
-          
-          ### Output Requirements:
-          Return JSON in the following structure:
-          {
-            "project_id": "<Project id>",
-            "date": "<date>",
-            "summary": {
-              "yesterday": "<Summary of yesterday's work>",
-              "today": "<Summary of today's work>"
-            },
-            "blocks": ["<List of blocks encountered>"],
-            "timesheet": [
-              {
-                "task_id": "<Task id>",
-                "note": "<Description of the task worked on that day>",
-                "time": "<Working time for the task>",
-                "type": "<'normal' or 'overtime'>"
-              }
-            ]
-          }
-          
-          ### Additional instructions:
-          - Ensure no duplicate tasks or notes in the final output.
-          - Keep summaries concise but informative.
-          - If there are multiple projects in the input, return an array of JSON objects, one per project.
-          
-          ### Input data:
-          {input}
-          `
-        ],
-        [
-          'assistant',
-          `### Output format:
-          {
-            "project_id": "<Project id>",
-            "date": "<date>",
-            "summary": {
-              "yesterday": "<Summary of yesterday's work>",
-              "today": "<Summary of today's work>"
-            },
-            "blocks": ["<List of blocks encountered>"],
-            "timesheet": [
-              {
-                "task_id": "<Task id>",
-                "note": "<Description of the task worked on that day>",
-                "time": "<Working time for the task>",
-                "type": "<'normal' or 'overtime'>"
-              }
-            ]
-          }`
-        ]
-      ]);
+  async generateSummarizeReport(input: string): Promise<string> {
+    const prompt = ChatPromptTemplate.fromMessages([
+      ['system', SUMMARIZE_REPORT_SYSTEM_PROMPT],
+      ['user', SUMMARIZE_REPORT_USER_PROMPT],
+    ]);
 
     const chain = prompt.pipe(this.ai);
-    const result = await chain.invoke({ input: req });
+    const result = await chain.invoke({ input });
 
+    return this.formatResponse(result);
+  }
+
+  /**
+   * Get training examples for improving AI responses
+   */
+  getTrainingExamples() {
+    return trainingExamples;
+  }
+
+  /**
+   * Get prompt training guidelines
+   */
+  getPromptTrainingGuidelines() {
+    return promptTrainingExamples;
+  }
+
+  /**
+   * Generate report with training context for better output
+   */
+  async generateSummarizeReportWithTraining(input: string): Promise<string> {
+    // Enhanced prompt with training context
+    const enhancedSystemPrompt = `${SUMMARIZE_REPORT_SYSTEM_PROMPT}
+
+IMPORTANT: Follow these output guidelines:
+- Use clear structure with headers (# ## ###)
+- Include emojis for visual organization (📊 📈 🎯 ✅ ⚠️)
+- Provide specific metrics and percentages
+- End with actionable recommendations
+- Focus on insights, not just data summary
+
+Example of good output structure:
+${trainingExamples.weeklyReportTraining.expectedOutput.substring(0, 500)}...`;
+
+    const prompt = ChatPromptTemplate.fromMessages([
+      ['system', enhancedSystemPrompt],
+      ['user', SUMMARIZE_REPORT_USER_PROMPT],
+    ]);
+
+    const chain = prompt.pipe(this.ai);
+    const result = await chain.invoke({ input });
+
+    return this.formatResponse(result);
+  }
+
+  /**
+   * Format the AI response to ensure consistent string output
+   */
+  private formatResponse(result: any): string {
     if (typeof result.content === 'string') {
       return result.content;
     } else if (result.content && typeof result.content === 'object' && 't' in result.content) {

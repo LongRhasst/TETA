@@ -4,9 +4,10 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { MezonClient } from 'mezon-sdk';
 import { MezonService } from './mezon.service';
 import { BotGateway } from '../bot/bot.gateway';
+import { KomuListenerModule } from '../listen/komu-listener.module';
 
 @Module({
-  imports: [EventEmitterModule],
+  imports: [EventEmitterModule, KomuListenerModule],
   providers: [
     Logger,
     {
@@ -32,6 +33,6 @@ import { BotGateway } from '../bot/bot.gateway';
     },
     MezonService,
   ],
-  exports: ['MEZON', MezonService, BotGateway],
+  exports: ['MEZON', MezonService, BotGateway, KomuListenerModule],
 })
 export class MezonModule {}
