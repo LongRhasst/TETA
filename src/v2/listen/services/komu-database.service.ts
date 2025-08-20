@@ -143,8 +143,44 @@ export class KomuDatabaseService {
   /**
    * Get all reports from database
    */
-  async getAllReports() {
+  async getAllReportsByTime(time: number) {
     return await this.prisma.data_report.findMany({
+      orderBy: { create_time: 'desc' }
+    });
+  }
+
+  /**
+   * Get reports by channel with time filter
+   */
+  async getReportsByChannelAndTime(channelId: string, timeFilter: any) {
+    return await this.prisma.data_report.findMany({
+      where: {
+        channel_id: channelId,
+        ...timeFilter
+      },
+      orderBy: { create_time: 'desc' }
+    });
+  }
+
+  /**
+   * Get reports by member with time filter
+   */
+  async getReportsByMemberAndTime(member: string, timeFilter: any) {
+    return await this.prisma.data_report.findMany({
+      where: {
+        member,
+        ...timeFilter
+      },
+      orderBy: { create_time: 'desc' }
+    });
+  }
+
+  /**
+   * Get all reports with time filter
+   */
+  async getAllReportsWithTimeFilter(timeFilter: any) {
+    return await this.prisma.data_report.findMany({
+      where: timeFilter,
       orderBy: { create_time: 'desc' }
     });
   }

@@ -3,6 +3,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { ChannelMessage, Events } from 'mezon-sdk';
 import { KomuParserService } from './services/komu-parser.service';
 import { KomuDatabaseService } from './services/komu-database.service';
+import { number } from 'joi';
 
 @Injectable()
 export class KomuReplyListener {
@@ -56,10 +57,6 @@ export class KomuReplyListener {
   // Delegate methods to database service
   async getData(messID: string) {
     return this.databaseService.getData(messID);
-  }
-
-  async getAllReports() {
-    return this.databaseService.getAllReports();
   }
 
   async getReportsByMember(member: string) {

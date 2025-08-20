@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { KomuDatabaseService } from '../../listen/services/komu-database.service';
 import { SummarizeReportService } from '../../ai/services/summarize-report.service';
 import { ProjectReportService } from '../../ai/services/project-report.service';
-import { generateChannelMessageContent } from './message';
+import { TimeControlService } from './timeControl/time-control.service';
+import { generateChannelMessageContent } from '../message';
 
 @Injectable()
 export class WeeklyReportService {
@@ -10,19 +11,29 @@ export class WeeklyReportService {
     private readonly databaseService: KomuDatabaseService,
     private readonly summarizeService: SummarizeReportService,
     private readonly projectService: ProjectReportService,
+    private readonly timeControlService: TimeControlService,
   ) {}
 
   /**
    * Xử lý command *weeklyUserReport - Báo cáo tổng hợp team (sử dụng summarize prompt)
    */
-  async handleWeeklyUserReport(channelId: string) {
+  async handleWeeklyUserReport(channelId: string, time: number) {
     try {
-      // Lấy tất cả reports từ channel hiện tại
-      const reports = await this.databaseService.getReportsByChannel(channelId);
+      // Tạo time filter và time description
+      const timeFilter = this.timeControlService.createPrismaTimeFilter(time);
+      const timeDescription = this.timeControlService.getTimeDescription(time);
+      const timeRange = this.timeControlService.calculateTimeRange(time);
+      const dateRangeStr = this.timeControlService.formatDateRange(timeRange.startDate, timeRange.endDate);
+      
+      // Thông báo báo cáo đang được tạo
+      console.log(`Báo cáo tổng hợp team đang được tạo cho ${dateRangeStr}...`);
+      
+      // Lấy reports theo channel và time filter
+      const reports = await this.databaseService.getReportsByChannelAndTime(channelId, timeFilter);
       
       if (reports.length === 0) {
         return generateChannelMessageContent({
-          message: '```\nKhông tìm thấy báo cáo nào trong channel này.\n```',
+          message: `\`\`\`\nKhông có dữ liệu trong ${timeDescription} được đề cập (${dateRangeStr}).\n\`\`\``,
           blockMessage: true,
         });
       }
@@ -31,7 +42,7 @@ export class WeeklyReportService {
       const reportContent = await this.summarizeService.generateTeamSummaryReport(reports);
 
       return generateChannelMessageContent({
-        message: `\`\`\`\nBÁO CÁO TỔNG HỢP TEAM - TUẦN HIỆN TẠI\n\n${reportContent}\n\`\`\``,
+        message: `\nBÁO CÁO TỔNG HỢP TEAM - ${timeDescription.toUpperCase()}\nThời gian: ${dateRangeStr}\n\n${reportContent}\n`,
         blockMessage: true,
       });
     } catch (error) {
@@ -46,23 +57,32 @@ export class WeeklyReportService {
   /**
    * Xử lý command *weeklyReport - Báo cáo đánh giá dự án (sử dụng project prompt với 12 tiêu chí)
    */
-  async handleWeeklyReport(channelId: string) {
+  async handleWeeklyReport(channelId: string, time: number) {
     try {
-      // Lấy tất cả reports từ channel hiện tại
-      const reports = await this.databaseService.getReportsByChannel(channelId);
+      // Tạo time filter và time description
+      const timeFilter = this.timeControlService.createPrismaTimeFilter(time);
+      const timeDescription = this.timeControlService.getTimeDescription(time);
+      const timeRange = this.timeControlService.calculateTimeRange(time);
+      const dateRangeStr = this.timeControlService.formatDateRange(timeRange.startDate, timeRange.endDate);
+      
+      // Thông báo báo cáo đang được tạo
+      console.log(`Báo cáo đánh giá dự án đang được tạo cho ${dateRangeStr}...`);
+      
+      // Lấy reports theo channel và time filter
+      const reports = await this.databaseService.getReportsByChannelAndTime(channelId, timeFilter);
       
       if (reports.length === 0) {
         return generateChannelMessageContent({
-          message: '```\nKhông tìm thấy báo cáo nào trong channel này.\n```',
+          message: `\`\`\`\nKhông có dữ liệu trong ${timeDescription} được đề cập (${dateRangeStr}).\n\`\`\``,
           blockMessage: true,
         });
       }
 
-      // Sử dụng project service để tạo báo cáo theo 12 tiêu chí
+      // create report a team for pm
       const reportContent = await this.projectService.generateProjectReport(reports);
 
       return generateChannelMessageContent({
-        message: `\`\`\`\nBÁO CÁO ĐÁNH GIÁ DỰ ÁN - 12 TIÊU CHÍ\n\n${reportContent}\n\`\`\``,
+        message: `\`\`\`\nBÁO CÁO ĐÁNH GIÁ DỰ ÁN - 12 TIÊU CHÍ\nThời gian: ${dateRangeStr}\n\n${reportContent}\n\`\`\``,
         blockMessage: true,
       });
     } catch (error) {
@@ -75,42 +95,29 @@ export class WeeklyReportService {
   }
 
   /**
-   * Xử lý command *weeklyReportAll - Báo cáo tổng hợp tất cả channels
+   * Xử lý command *reportStats - Thống kê báo cáo
    */
-  async handleWeeklyReportAll() {
+  async handleReportStats(channelId: string, time: number) {
     try {
-      // Lấy tất cả reports từ database
-      const reports = await this.databaseService.getAllReports();
+      // Tạo time filter và time description
+      const timeFilter = this.timeControlService.createPrismaTimeFilter(time);
+      const timeDescription = this.timeControlService.getTimeDescription(time);
+      const timeRange = this.timeControlService.calculateTimeRange(time);
+      const dateRangeStr = this.timeControlService.formatDateRange(timeRange.startDate, timeRange.endDate);
+      
+      // Thông báo thống kê đang được tạo
+      console.log(`Thống kê báo cáo đang được tạo cho ${dateRangeStr}...`);
+      
+      // Lấy reports theo channel và time filter
+      const reports = await this.databaseService.getReportsByChannelAndTime(channelId, timeFilter);
       
       if (reports.length === 0) {
         return generateChannelMessageContent({
-          message: '```\nKhông tìm thấy báo cáo nào trong hệ thống.\n```',
+          message: `\`\`\`\nKhông có dữ liệu trong ${timeDescription} được đề cập (${dateRangeStr}).\n\`\`\``,
           blockMessage: true,
         });
       }
-
-      // Sử dụng summarize service với enhanced training
-      const reportContent = await this.summarizeService.generateComprehensiveTeamReport(reports);
-
-      return generateChannelMessageContent({
-        message: `\`\`\`\n BÁO CÁO TỔNG HỢP TẤT CẢ DỰ ÁN\n\n${reportContent}\n\`\`\``,
-        blockMessage: true,
-      });
-    } catch (error) {
-      console.error('Error generating comprehensive report:', error);
-      return generateChannelMessageContent({
-        message: '```\n Có lỗi xảy ra khi tạo báo cáo tổng hợp.\n```',
-        blockMessage: true,
-      });
-    }
-  }
-
-  /**
-   * Xử lý command *reportStats - Thống kê báo cáo
-   */
-  async handleReportStats(channelId: string) {
-    try {
-      const reports = await this.databaseService.getReportsByChannel(channelId);
+      
       const validReports = reports.filter(r => !r.daily_late);
       const invalidReports = reports.filter(r => r.daily_late);
       
@@ -131,23 +138,28 @@ export class WeeklyReportService {
         .sort(([,a], [,b]) => b - a)
         .slice(0, 5);
 
-      let statsMessage = `**THỐNG KÊ BÁO CÁO**\n\n`;
-      statsMessage += `**Tổng quan:**\n`;
+      const projectEntries = Object.entries(projectStats);
+
+      let statsMessage = `THỐNG KÊ BÁO CÁO - ${timeDescription.toUpperCase()}\nThời gian: ${dateRangeStr}\n\n`;
+      statsMessage += `Tổng quan:\n`;
       statsMessage += `• Số thành viên active: ${uniqueMembers}\n`;
       statsMessage += `• Tổng báo cáo: ${reports.length}\n`;
       statsMessage += `• Báo cáo hợp lệ: ${validReports.length} (${((validReports.length/reports.length)*100).toFixed(1)}%)\n`;
       statsMessage += `• Báo cáo không hợp lệ: ${invalidReports.length}\n`;
       statsMessage += `• Tổng giờ làm việc: ${totalHours} giờ\n\n`;
-
-      if (topProjects.length > 0) {
-        statsMessage += `**Top dự án:**\n`;
-        topProjects.forEach(([project, count]) => {
-          statsMessage += `• ${project}: ${count} báo cáo\n`;
-        });
+      
+      if (projectEntries.length > 0) {
+        statsMessage += `• Dự án: ${projectEntries[0][0]} : ${projectEntries[0][1]} báo cáo\n\n`;
       }
+      // if (topProjects.length > 0) {
+      //   statsMessage += `Top dự án:\n`;
+      //   topProjects.forEach(([project, count]) => {
+      //     statsMessage += `• ${project}: ${count} báo cáo\n`;
+      //   });
+      // }
 
       return generateChannelMessageContent({
-        message: `\`\`\`\n${statsMessage}\n\`\`\``,
+        message: `\n${statsMessage}\n`,
         blockMessage: true,
       });
     } catch (error) {
