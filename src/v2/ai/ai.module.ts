@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { AiService } from './ai.service';
+import { SummarizeReportService } from './services/summarize-report.service';
+import { ProjectReportService } from './services/project-report.service';
 import { ConfigService } from '@nestjs/config';
 import { ChatDeepSeek } from '@langchain/deepseek';
 
@@ -8,6 +10,8 @@ import { ChatDeepSeek } from '@langchain/deepseek';
   imports: [PrismaModule],
   providers: [
     AiService,
+    SummarizeReportService,
+    ProjectReportService,
     {
       provide: 'AI',
       inject: [ConfigService],
@@ -19,6 +23,6 @@ import { ChatDeepSeek } from '@langchain/deepseek';
       },
     },
   ],
-  exports: [AiService],
+  exports: [AiService, SummarizeReportService, ProjectReportService],
 })
 export class AiModule {}

@@ -3,11 +3,10 @@ Nhiệm vụ của bạn là tổng hợp tất cả daily reports của các th
 
 QUAN TRỌNG - Định dạng output:
 - Output phải là tin nhắn dạng form, KHÔNG phải JSON raw
-- Sử dụng cấu trúc rõ ràng với headers (# ## ###)
-- Sử dụng emoji để tổ chức trực quan (📊 📈 🎯 ✅ ⚠️ 👥 🚀)
+
 - Cung cấp metrics cụ thể và phần trăm
 - Tập trung vào insights và đánh giá, không chỉ tóm tắt dữ liệu
-- Kết thúc bằng khuyến nghị hành động cụ thể
+// - Kết thúc bằng khuyến nghị hành động cụ thể
 
 Quy tắc đánh giá:
 - Phân tích hiệu suất cá nhân và team
@@ -35,18 +34,18 @@ Cấu trúc mỗi report:
 
 ### Yêu cầu Output (Định dạng Form Message):
 
-# 📊 Báo Cáo Tổng Quan Team
-**Thời gian:** [Tuần từ ngày - ngày]
-**Số thành viên:** [X] người
-**Tỷ lệ báo cáo hợp lệ:** [X]% ([Y] hợp lệ, [Z] không hợp lệ)
+Báo Cáo Tổng Quan Team
+Thời gian: [Tuần từ ngày - ngày]
+Số thành viên: [X] người
+Tỷ lệ báo cáo hợp lệ: [X]% ([Y] hợp lệ, [Z] không hợp lệ)
 
-## 📈 Metrics Tổng Quan
-- **Tổng giờ làm việc:** [X] giờ
-- **Trung bình mỗi người:** [X] giờ
-- **Tỷ lệ hoàn thành:** [X]%
-- **Số blockers đang có:** [X] vấn đề
+Metrics Tổng Quan
+- Tổng giờ làm việc: [X] giờ
+- Trung bình mỗi người: [X] giờ
+- Tỷ lệ hoàn thành: [X]%
+- Số blockers đang có: [X] vấn đề
 
-## 👥 Hiệu Suất Cá Nhân
+Hiệu Suất Cá Nhân
 [Phân tích từng thành viên với:
 - Giờ làm việc
 - Thành tựu đã hoàn thành
@@ -54,18 +53,18 @@ Cấu trúc mỗi report:
 - Blockers
 - Đánh giá trạng thái]
 
-## 🚀 Tiến Độ Team
-**Đã hoàn thành:**
+Tiến Độ Team
+Đã hoàn thành:
 - [Danh sách công việc đã xong]
 
-**Đang thực hiện:**
+Đang thực hiện:
 - [Danh sách công việc đang làm]
 
-## ⚠️ Vấn Đề Cần Xử Lý
+Vấn Đề Cần Xử Lý
 [Liệt kê blockers và báo cáo không hợp lệ]
 
-## 🎯 Khuyến Nghị & Hành Động
+Khuyến Nghị & Hành Động
 [Đề xuất cụ thể để cải thiện hiệu suất]
 
-### Dữ liệu đầu vào:
+Dữ liệu đầu vào:
 {input}`;

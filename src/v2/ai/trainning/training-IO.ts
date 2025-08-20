@@ -87,7 +87,7 @@ export const trainingExamples = {
   }
 ]`,
 
-    expectedOutput: `# 📊 Báo Cáo Tổng Quan Team
+    expectedOutput: `Báo Cáo Tổng Quan Team
 **Thời gian:** 12-18 Tháng 8, 2025
 **Số thành viên:** 3 người
 **Tỷ lệ báo cáo hợp lệ:** 67% (2 hợp lệ, 1 không hợp lệ)
@@ -98,9 +98,9 @@ export const trainingExamples = {
 - **Tỷ lệ hoàn thành:** 67% (2 hợp lệ, 1 không hợp lệ)
 - **Số blockers đang có:** 2 vấn đề
 
-## 👥 Hiệu Suất Cá Nhân
+👥 Hiệu Suất Cá Nhân
 
-### John Doe - Backend Developer
+John Doe - Backend Developer
 **Thời gian làm việc:** 8 giờ
 **Thành tựu hôm qua:**
 - ✅ Hoàn thành user authentication API
@@ -115,7 +115,7 @@ export const trainingExamples = {
 
 **Trạng thái:** Đúng tiến độ, output tốt
 
-### Jane Smith - Frontend Developer  
+Jane Smith - Frontend Developer  
 **Thời gian làm việc:** 7.5 giờ
 **Thành tựu hôm qua:**
 - ✅ Thiết kế mockups trang login
@@ -130,7 +130,7 @@ export const trainingExamples = {
 
 **Trạng thái:** Đúng tiến độ, tiến độ design tốt
 
-### Bob Wilson - QA Tester
+Bob Wilson - QA Tester
 **Thời gian làm việc:** Không có (báo cáo không hợp lệ)
 **Trạng thái báo cáo:** ❌ **Submission không hợp lệ**
 **Lỗi:** Lỗi định dạng thời gian - nhập "20k/time" thay vì số giờ
@@ -195,7 +195,7 @@ export const trainingExamples = {
 
 // ## 👤 Individual Performance Changes
 
-// ### John Doe
+// John Doe
 // **Working Time:** 7.0h → 8.0h *(+1.0h, +14%)*
 // **Completed Tasks:** 3 → 5 *(+2, +67%)*
 // **Blocked Items:** 2 → 1 *(-1, -50%)*
@@ -205,7 +205,7 @@ export const trainingExamples = {
 // - 🟢 **Better time allocation** with increased hours
 // - 🟢 **Reduced blockers** showing better planning
 
-// ### Jane Smith
+// Jane Smith
 // **Working Time:** 8.0h → 7.5h *(-0.5h, -6%)*
 // **Completed Tasks:** 3 → 4 *(+1, +33%)*
 // **Blocked Items:** 2 → 1 *(-1, -50%)*
@@ -261,12 +261,12 @@ export const trainingExamples = {
 
 // ## 📋 Error Details
 
-// ### Bob Wilson - Report ID: Invalid Time Format
+// Bob Wilson - Report ID: Invalid Time Format
 // **Error Message:** "not daily 20k/time"
 // **Issue Type:** Monetary value instead of time duration
 // **Correct Format Should Be:** "8 hours" or "8h"
 
-// ### Alice Brown - Report ID: Invalid Time Format  
+// Alice Brown - Report ID: Invalid Time Format  
 // **Error Message:** "not daily 20k/time"
 // **Issue Type:** Monetary value instead of time duration
 // **Correct Format Should Be:** "6 hours" or "6h"
@@ -278,19 +278,19 @@ export const trainingExamples = {
 
 // ## 💡 Immediate Solutions
 
-// ### For Bob Wilson:
+// For Bob Wilson:
 // - Change "20k/time" → "8 hours"
 // - Provide time format examples
 // - Show working hours range: 7h30-17h30
 
-// ### For Alice Brown:
+// For Alice Brown:
 // - Change "15k/time" → "6 hours" 
 // - Clarify that this is work duration, not payment
 // - Provide format options: "6h", "6 hours", "360 minutes"
 
 // ## 🛠️ System Improvements
 
-// ### Short-term Fixes:
+// Short-term Fixes:
 // 1. **Add Input Validation**
 //    - Block non-time formats
 //    - Suggest correct format on error
@@ -305,7 +305,7 @@ export const trainingExamples = {
 //    - Send correction instructions to affected users
 //    - Provide quick tutorial on time entry
 
-// ### Long-term Prevention:
+// Long-term Prevention:
 // 1. **Smart Input Field**
 //    - Auto-complete for time values
 //    - Format conversion (8.5 → "8 hours 30 minutes")
@@ -347,7 +347,7 @@ export const promptTrainingExamples = {
     ],
     
     outputFormat: {
-      structure: "# Title, ## Sections, ### Subsections",
+      structure: "# Title, ## Sections, Subsections",
       metrics: "Use tables, bullet points, and progress indicators",
       recommendations: "Numbered action items with priorities",
       insights: "Highlight key trends and patterns"
