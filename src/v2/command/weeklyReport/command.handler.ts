@@ -158,8 +158,6 @@ export class CommandHandler {
       case '*reportstats':
         reportType = 'Thống kê báo cáo';
         break;
-      default:
-        reportType = 'Báo cáo';
     }
 
     const processingText = `${icon} ${reportType} đang được tạo...

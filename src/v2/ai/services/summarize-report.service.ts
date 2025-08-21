@@ -1,6 +1,5 @@
-import { ChatDeepSeek } from '@langchain/deepseek';
-import { Inject, Injectable } from '@nestjs/common';
-import { ChatPromptTemplate } from '@langchain/core/prompts';
+import { Injectable } from '@nestjs/common';
+import { VertexAIService } from '../vertex-ai.service';
 import {
   SUMMARIZE_REPORT_SYSTEM_PROMPT,
   SUMMARIZE_REPORT_USER_PROMPT,
@@ -9,7 +8,7 @@ import { trainingExamples } from '../trainning/training-IO';
 
 @Injectable()
 export class SummarizeReportService {
-  constructor(@Inject('AI') private readonly ai: ChatDeepSeek) {}
+  constructor(private readonly vertexAI: VertexAIService) {}
 
   /**
    * Tạo báo cáo tổng hợp team từ tất cả daily reports
@@ -19,15 +18,13 @@ export class SummarizeReportService {
     // Chuẩn bị dữ liệu đầu vào dưới dạng structured format
     const inputData = this.prepareReportData(dailyReports);
     
-    const prompt = ChatPromptTemplate.fromMessages([
-      ['system', SUMMARIZE_REPORT_SYSTEM_PROMPT],
-      ['user', SUMMARIZE_REPORT_USER_PROMPT],
-    ]);
+    const prompt = `${SUMMARIZE_REPORT_SYSTEM_PROMPT}
 
-    const chain = prompt.pipe(this.ai);
-    const result = await chain.invoke({ input: inputData });
+User request: ${SUMMARIZE_REPORT_USER_PROMPT}
 
-    return this.formatResponse(result);
+Data to analyze: ${inputData}`;
+
+    return await this.vertexAI.generateContent(prompt);
   }
 
   /**
@@ -48,17 +45,13 @@ ${trainingExamples.weeklyReportTraining.expectedOutput.substring(0, 800)}...
 4. Đưa ra metrics cụ thể và phần trăm
 5. Phân tích insights thay vì chỉ tóm tắt data
 6. Kết thúc bằng action items cụ thể
-7. Xử lý riêng các báo cáo không hợp lệ (daily_late = true)`;
+7. Xử lý riêng các báo cáo không hợp lệ (daily_late = true)
 
-    const prompt = ChatPromptTemplate.fromMessages([
-      ['system', enhancedSystemPrompt],
-      ['user', SUMMARIZE_REPORT_USER_PROMPT],
-    ]);
+User request: ${SUMMARIZE_REPORT_USER_PROMPT}
 
-    const chain = prompt.pipe(this.ai);
-    const result = await chain.invoke({ input });
+Data to analyze: ${input}`;
 
-    return this.formatResponse(result);
+    return await this.vertexAI.generateContent(enhancedSystemPrompt);
   }
 
   /**

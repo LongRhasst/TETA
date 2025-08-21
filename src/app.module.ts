@@ -17,7 +17,9 @@ import * as Joi from 'joi';
         MEZON_TOKEN: Joi.string().required(),
         DATABASE_URL: Joi.string().required(),
         AI_MODEL: Joi.string().required(),
-        AI_API_KEY: Joi.string().required(),
+        AI_LOCATION: Joi.string().optional(),
+        AI_PROJECT_ID: Joi.string().required(),
+        GOOGLE_APPLICATION_CREDENTIALS: Joi.string().optional(),
       })
     }),
     EventEmitterModule.forRoot(),

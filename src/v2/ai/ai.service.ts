@@ -1,32 +1,25 @@
-import { ChatDeepSeek } from '@langchain/deepseek';
-import { Inject, Injectable } from '@nestjs/common';
-import { ChatPromptTemplate } from '@langchain/core/prompts';
-import {
-  SUMMARIZE_REPORT_SYSTEM_PROMPT,
-  SUMMARIZE_REPORT_USER_PROMPT,
-} from './prompts';
+import { Injectable } from '@nestjs/common';
 import { trainingExamples, promptTrainingExamples } from './trainning/training-IO';
 import { SummarizeReportService } from './services/summarize-report.service';
 import { ProjectReportService } from './services/project-report.service';
+import { VertexAIService } from './vertex-ai.service';
 
 @Injectable()
 export class AiService {
   constructor(
-    @Inject('AI') private readonly ai: ChatDeepSeek,
+    private readonly vertexAI: VertexAIService,
     private readonly summarizeService: SummarizeReportService,
     private readonly projectService: ProjectReportService,
   ) {}
 
   async generateSummarizeReport(input: string): Promise<string> {
-    const prompt = ChatPromptTemplate.fromMessages([
-      ['system', SUMMARIZE_REPORT_SYSTEM_PROMPT],
-      ['user', SUMMARIZE_REPORT_USER_PROMPT],
-    ]);
+    const prompt = `You are a helpful project management assistant. Please analyze the following daily reports data and create a comprehensive summary report in Vietnamese.
 
-    const chain = prompt.pipe(this.ai);
-    const result = await chain.invoke({ input });
+Input data: ${input}
 
-    return this.formatResponse(result);
+Please provide a detailed summary covering key metrics, progress updates, blockers, and recommendations.`;
+
+    return await this.vertexAI.generateContent(prompt);
   }
 
   /**

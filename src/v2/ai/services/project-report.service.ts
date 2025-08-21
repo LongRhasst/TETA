@@ -1,6 +1,5 @@
-import { ChatDeepSeek } from '@langchain/deepseek';
-import { Inject, Injectable } from '@nestjs/common';
-import { ChatPromptTemplate } from '@langchain/core/prompts';
+import { Injectable } from '@nestjs/common';
+import { VertexAIService } from '../vertex-ai.service';
 import {
   PROJECT_REPORT_SYSTEM_PROMPT,
   PROJECT_REPORT_USER_PROMPT,
@@ -8,7 +7,7 @@ import {
 
 @Injectable()
 export class ProjectReportService {
-  constructor(@Inject('AI') private readonly ai: ChatDeepSeek) {}
+  constructor(private readonly vertexAI: VertexAIService) {}
 
   /**
    * Tạo báo cáo đánh giá dự án theo 12 tiêu chí chuẩn
@@ -16,15 +15,13 @@ export class ProjectReportService {
   async generateProjectReport(dailyReports: any[]): Promise<string> {
     const inputData = this.prepareProjectReportData(dailyReports);
     
-    const prompt = ChatPromptTemplate.fromMessages([
-      ['system', PROJECT_REPORT_SYSTEM_PROMPT],
-      ['user', PROJECT_REPORT_USER_PROMPT],
-    ]);
+    const prompt = `${PROJECT_REPORT_SYSTEM_PROMPT}
 
-    const chain = prompt.pipe(this.ai);
-    const result = await chain.invoke({ input: inputData });
+User request: ${PROJECT_REPORT_USER_PROMPT}
 
-    return this.formatResponse(result);
+Data to analyze: ${inputData}`;
+
+    return await this.vertexAI.generateContent(prompt);
   }
 
   /**
