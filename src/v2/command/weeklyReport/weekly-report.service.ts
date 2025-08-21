@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { KomuDatabaseService } from '../../listen/services/komu-database.service';
-import { SummarizeReportService } from '../../ai/services/summarize-report.service';
-import { ProjectReportService } from '../../ai/services/project-report.service';
+import { SummarizeReportService } from '../../ai/service/summarize-report.service';
+import { ProjectReportService } from '../../ai/service/project-report.service';
 import { TimeControlService } from './timeControl/time-control.service';
 import { generateChannelMessageContent } from '../message';
 
