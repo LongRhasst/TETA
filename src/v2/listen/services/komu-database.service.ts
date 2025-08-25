@@ -94,6 +94,37 @@ export class KomuDatabaseService {
   }
 
   /**
+   * Save database output report
+   */
+  async saveProjectReport(reportJson: string){
+    try {
+      // Parse JSON string to object
+      const report = JSON.parse(reportJson);
+      
+      // Save to report_log table với proper structure
+      await this.prisma.report_log.create({
+        data: {
+          project_name: report.project_name || '',
+          member: report.member || '',
+          progress: report.progress || '',
+          customer_communication: report.customer_communication || '',
+          human_resource: report.human_resource || '',
+          profession: report.profession || '',
+          technical_solution: report.technical_solution || '',
+          testing: report.testing || '',
+          milestone: report.milestone || '',
+          week_goal: report.week_goal || '',
+          issue: report.issue || '',
+          risks: report.risks || ''
+        }
+      });
+    } catch (error) {
+      console.error('Error saving project report:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get data by message ID
    */
   async getData(messID: string) {

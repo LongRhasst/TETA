@@ -4,6 +4,7 @@ import { SummarizeReportService } from '../../ai/services/summarize-report.servi
 import { ProjectReportService } from '../../ai/services/project-report.service';
 import { TimeControlService } from './timeControl/time-control.service';
 import { generateChannelMessageContent } from '../message';
+import { report } from 'process';
 
 @Injectable()
 export class WeeklyReportService {
@@ -81,14 +82,17 @@ export class WeeklyReportService {
       // create report a team for pm
       const reportContent = await this.projectService.generateProjectReport(reports);
 
+      //export json output to db
+      await this.databaseService.saveProjectReport(reportContent);
+
       return generateChannelMessageContent({
-        message: `\`\`\`\nBÁO CÁO ĐÁNH GIÁ DỰ ÁN - 12 TIÊU CHÍ\nThời gian: ${dateRangeStr}\n\n${reportContent}\n\`\`\``,
+        message: `\nBÁO CÁO ĐÁNH GIÁ DỰ ÁN - 12 TIÊU CHÍ\nThời gian: ${dateRangeStr}\n\n${reportContent}\n`,
         blockMessage: true,
       });
     } catch (error) {
       console.error('Error generating weekly project report:', error);
       return generateChannelMessageContent({
-        message: '```\nCó lỗi xảy ra khi tạo báo cáo đánh giá dự án.\n```',
+        message: `\nCó lỗi xảy ra khi tạo báo cáo đánh giá dự án.\n`,
         blockMessage: true,
       });
     }

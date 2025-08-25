@@ -3,26 +3,16 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { AiService } from './ai.service';
 import { SummarizeReportService } from './services/summarize-report.service';
 import { ProjectReportService } from './services/project-report.service';
-import { ConfigService } from '@nestjs/config';
-import { ChatDeepSeek } from '@langchain/deepseek';
+import { LMStudioService } from './lmstudio.service';
 
 @Module({
   imports: [PrismaModule],
   providers: [
+    LMStudioService,
     AiService,
     SummarizeReportService,
     ProjectReportService,
-    {
-      provide: 'AI',
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        return new ChatDeepSeek({
-          model: configService.get('AI_MODEL'),
-          apiKey: configService.get('AI_API_KEY'),
-        });
-      },
-    },
   ],
-  exports: [AiService, SummarizeReportService, ProjectReportService],
+  exports: [AiService, SummarizeReportService, ProjectReportService, LMStudioService],
 })
 export class AiModule {}

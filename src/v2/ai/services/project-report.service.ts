@@ -1,136 +1,137 @@
-import { ChatDeepSeek } from '@langchain/deepseek';
-import { Inject, Injectable } from '@nestjs/common';
-import { ChatPromptTemplate } from '@langchain/core/prompts';
+import { Injectable } from '@nestjs/common';
 import {
   PROJECT_REPORT_SYSTEM_PROMPT,
   PROJECT_REPORT_USER_PROMPT,
 } from '../prompts';
+import { LMStudioService } from '../lmstudio.service';
+import { ProjectReport } from '../interface/project.report';
 
 @Injectable()
 export class ProjectReportService {
-  constructor(@Inject('AI') private readonly ai: ChatDeepSeek) {}
+  constructor(private readonly lmStudioService: LMStudioService) {}
 
   /**
    * Tạo báo cáo đánh giá dự án theo 12 tiêu chí chuẩn
+   * Trả về JSON format theo interface ProjectReport
    */
   async generateProjectReport(dailyReports: any[]): Promise<string> {
     const inputData = this.prepareProjectReportData(dailyReports);
     
-    const prompt = ChatPromptTemplate.fromMessages([
-      ['system', PROJECT_REPORT_SYSTEM_PROMPT],
-      ['user', PROJECT_REPORT_USER_PROMPT],
-    ]);
+    // Phân tích dữ liệu cơ bản để tạo report structure
+    const analysis = this.analyzeWorkTrends(dailyReports);
+    const validReports = dailyReports.filter(r => !r.daily_late);
+    
+    // Tạo base structure cho ProjectReport
+    const projectReport: ProjectReport = {
+      project_name: analysis.topProjects[0] || "Multiple Projects",
+      member: `${new Set(validReports.map(r => r.member)).size} active members`,
+      progress: `${analysis.validRate.toFixed(1)}% completion rate with ${analysis.totalHours}h total work`,
+      customer_communication: "Pending AI analysis",
+      human_resource: `${validReports.length} team members contributing`,
+      profession: "Software Development Team",
+      technical_solution: "Pending AI analysis", 
+      testing: "Pending AI analysis",
+      milestone: "Weekly milestone assessment",
+      week_goal: "Pending AI analysis",
+      issue: `${analysis.blockerCount} active blockers identified`,
+      risks: "Pending AI analysis"
+    };
 
-    const chain = prompt.pipe(this.ai);
-    const result = await chain.invoke({ input: inputData });
+    // Gọi AI để phân tích chi tiết và cập nhật các field
+    const systemPrompt = `${PROJECT_REPORT_SYSTEM_PROMPT}
 
-    return this.formatResponse(result);
+You must respond with a valid JSON object that matches this exact structure:
+{
+  "project_name": "string",
+  "member": "string", 
+  "progress": "string",
+  "customer_communication": "string",
+  "human_resource": "string",
+  "profession": "string",
+  "technical_solution": "string",
+  "testing": "string", 
+  "milestone": "string",
+  "week_goal": "string",
+  "issue": "string",
+  "risks": "string"
+}
+
+Analyze the provided data and fill each field with meaningful insights in Vietnamese.`;
+
+    const userPrompt = PROJECT_REPORT_USER_PROMPT.replace('{input}', inputData);
+
+    const aiResponse = await this.lmStudioService.generateContentWithChunking(systemPrompt, userPrompt);
+    
+    try {
+      // Thử parse AI response thành JSON
+      const aiReport = JSON.parse(aiResponse);
+      
+      // Merge với base structure
+      const finalReport: ProjectReport = {
+        ...projectReport,
+        ...aiReport
+      };
+      
+      return JSON.stringify(finalReport, null, 2);
+    } catch (error) {
+      // Nếu AI không trả về JSON hợp lệ, trả về base structure với AI response
+      projectReport.customer_communication = aiResponse.substring(0, 200) + "...";
+      return JSON.stringify(projectReport, null, 2);
+    }
   }
 
   /**
    * Chuẩn bị dữ liệu cho báo cáo đánh giá dự án 12 tiêu chí
+   * Tối ưu để tránh context overflow (giới hạn 4096 tokens)
    */
   private prepareProjectReportData(reports: any[]): string {
-    const validReports = reports.filter(r => !r.daily_late);
-    const invalidReports = reports.filter(r => r.daily_late);
+    // Giới hạn reports để tránh context overflow
+    const limitedReports = reports.slice(0, 15);
+    const validReports = limitedReports.filter(r => !r.daily_late);
+    const invalidReports = limitedReports.filter(r => r.daily_late);
     
     // Phân tích dữ liệu cơ bản
-    const analysis = this.analyzeWorkTrends(reports);
+    const analysis = this.analyzeWorkTrends(limitedReports);
     
-    // Phân tích blockers và issues
+    // Phân tích blockers (chỉ lấy 5 blockers đầu)
     const blockers = validReports
       .filter(r => r.block && r.block.trim() !== '')
-      .map(r => ({ user: r.display_name || r.member, block: r.block }));
+      .slice(0, 5)
+      .map(r => ({ user: r.display_name || r.member, block: r.block.substring(0, 100) }));
     
-    // Phân tích task distribution
-    const taskDistribution: Record<string, number> = {};
-    validReports.forEach(report => {
-      if (report.task_label) {
-        taskDistribution[report.task_label] = (taskDistribution[report.task_label] || 0) + 1;
-      }
-    });
+    let dataString = `=== DỰ ÁN TUẦN ===\n`;
+    dataString += `Thành viên: ${new Set(validReports.map(r => r.member)).size}, `;
+    dataString += `Reports: ${limitedReports.length} (${validReports.length} OK)\n`;
+    dataString += `Giờ làm: ${analysis.totalHours}h (TB: ${analysis.averageHours.toFixed(1)}h/người)\n`;
+    dataString += `Blockers: ${analysis.blockerCount}\n\n`;
 
-    // Phân tích progress theo ngày
-    const dailyProgress: Record<string, any[]> = {};
-    validReports.forEach(report => {
-      const dateKey = report.date ? new Date(report.date).toLocaleDateString() : 'Không xác định';
-      if (!dailyProgress[dateKey]) dailyProgress[dateKey] = [];
-      dailyProgress[dateKey].push({
-        user: report.display_name || report.member,
-        yesterday: report.yesterday,
-        today: report.today,
-        project: report.project_label
-      });
-    });
-
-    let dataString = `=== THÔNG TIN DỰ ÁN ===\n`;
-    dataString += `Thời gian: ${new Date().toLocaleDateString()} - Tuần hiện tại\n`;
-    dataString += `Dự án chính: ${analysis.topProjects[0] || 'Đa dự án'}\n`;
-    dataString += `Số thành viên: ${new Set(validReports.map(r => r.member)).size} người active\n`;
-    dataString += `Tổng báo cáo: ${reports.length} (${validReports.length} hợp lệ, ${invalidReports.length} không hợp lệ)\n\n`;
-
-    dataString += `=== METRICS TỔNG QUAN ===\n`;
-    dataString += `Tổng giờ làm việc: ${analysis.totalHours} giờ\n`;
-    dataString += `Trung bình mỗi người: ${analysis.averageHours.toFixed(1)} giờ\n`;
-    dataString += `Tỷ lệ báo cáo hợp lệ: ${analysis.validRate.toFixed(1)}%\n`;
-    dataString += `Số blockers hiện tại: ${analysis.blockerCount}\n`;
-    dataString += `Top dự án: ${analysis.topProjects.join(', ')}\n\n`;
-
-    dataString += `=== PHÂN TÍCH TASK DISTRIBUTION ===\n`;
-    Object.entries(taskDistribution).forEach(([task, count]) => {
-      dataString += `${task}: ${count} reports\n`;
-    });
-    dataString += '\n';
-
-    dataString += `=== CHI TIẾT BLOCKERS ===\n`;
-    blockers.forEach(({ user, block }) => {
-      dataString += `${user}: ${block}\n`;
-    });
-    dataString += '\n';
-
-    dataString += `=== TIẾN ĐỘ THEO NGÀY ===\n`;
-    Object.entries(dailyProgress).forEach(([date, activities]) => {
-      dataString += `--- ${date} ---\n`;
-      activities.forEach(activity => {
-        dataString += `${activity.user} (${activity.project}):\n`;
-        dataString += `  Completed: ${activity.yesterday || 'Không có thông tin'}\n`;
-        dataString += `  Planning: ${activity.today || 'Không có thông tin'}\n`;
-      });
-      dataString += '\n';
-    });
-
-    dataString += `=== CHI TIẾT THÀNH VIÊN ===\n`;
+    dataString += `=== TOP THÀNH VIÊN ===\n`;
     const userStats: Record<string, any> = {};
-    validReports.forEach(report => {
+    validReports.slice(0, 8).forEach(report => {
       const userId = report.member;
       if (!userStats[userId]) {
         userStats[userId] = {
           name: report.display_name || report.member,
-          totalHours: 0,
-          reportCount: 0,
+          hours: 0,
           projects: new Set(),
-          tasks: new Set(),
-          blockers: []
+          hasBlocker: false
         };
       }
       
-      userStats[userId].totalHours += this.parseWorkingTime(report.working_time || '0');
-      userStats[userId].reportCount++;
+      userStats[userId].hours += this.parseWorkingTime(report.working_time || '0');
       if (report.project_label) userStats[userId].projects.add(report.project_label);
-      if (report.task_label) userStats[userId].tasks.add(report.task_label);
       if (report.block && report.block.trim() !== '') {
-        userStats[userId].blockers.push(report.block);
+        userStats[userId].hasBlocker = true;
       }
     });
 
     Object.values(userStats).forEach((user: any) => {
-      dataString += `--- ${user.name} ---\n`;
-      dataString += `Tổng giờ: ${user.totalHours} giờ\n`;
-      dataString += `Số báo cáo: ${user.reportCount}\n`;
-      dataString += `Dự án tham gia: ${Array.from(user.projects).join(', ')}\n`;
-      dataString += `Loại task: ${Array.from(user.tasks).join(', ')}\n`;
-      dataString += `Blockers: ${user.blockers.length > 0 ? user.blockers.join('; ') : 'Không có'}\n`;
-      dataString += '\n';
+      dataString += `${user.name}: ${user.hours}h, ${Array.from(user.projects).join('/')}, ${user.hasBlocker ? '🚫' : '✅'}\n`;
+    });
+
+    dataString += `\n=== BLOCKERS ===\n`;
+    blockers.forEach(({ user, block }) => {
+      dataString += `${user}: ${block}\n`;
     });
 
     return dataString;
@@ -192,18 +193,5 @@ export class ProjectReportService {
     if (minMatch) return parseFloat(minMatch[1]) / 60;
     
     return 0;
-  }
-
-  /**
-   * Format the AI response to ensure consistent string output
-   */
-  private formatResponse(result: any): string {
-    if (typeof result.content === 'string') {
-      return result.content;
-    } else if (result.content && typeof result.content === 'object' && 't' in result.content) {
-      return (result.content as { t: string }).t;
-    } else {
-      return JSON.stringify(result.content);
-    }
   }
 }

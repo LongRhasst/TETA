@@ -9,39 +9,49 @@ datasource db {
 }
 
 model data_report {
-  message_id     String    @id
-  channel_id     String
-  clan_id        String
-  sender_id      String?
-  display_name   String?
-  member         String?
-
-  // Preferences from reply message (form inputs)
-  project_label  String?
-  project_value  String?
-  task_label     String?
-  task_value     String?
-  work_type      String?
+  message_id           String    @id
+  channel_id           String
+  clan_id              String
+  create_time          DateTime  @default(now())
+  update_time          DateTime? @updatedAt
+  block                String?
+  today                String?
+  yesterday            String?
+  date                 DateTime? @db.Date
   default_working_time Int?
-  
-  // Output data from update message
-  date           DateTime? @db.Date
-  yesterday      String?
-  today          String?
-  block          String?
-  working_time   String?
-  
-  // Raw JSON data for reference
-  reply_data     Json?
-  update_data    Json?
-  
-  // Validation daily status
-  daily_late       Boolean   @default(false)
-  
-  create_time    DateTime  @default(now())
-  update_time    DateTime? @updatedAt
+  display_name         String?
+  project_label        String?
+  project_value        String?
+  reply_data           Json?
+  sender_id            String?
+  task_label           String?
+  task_value           String?
+  update_data          Json?
+  work_type            String?
+  working_time         String?
+  daily_late           Boolean   @default(false)
+  member               String?
 
   @@index([create_time])
-
   @@map("data_reports")
+}
+
+model report_log {
+  id                     Int       @id @default(autoincrement())
+  project_name           String    @db.VarChar(500)
+  member                 String    @db.VarChar(500)
+  progress               String    @db.Text
+  customer_communication String   @db.Text
+  human_resource         String    @db.Text
+  profession             String    @db.VarChar(255)
+  technical_solution     String    @db.Text
+  testing                String    @db.Text
+  milestone              String    @db.Text
+  week_goal              String    @db.Text
+  issue                  String    @db.Text
+  risks                  String    @db.Text
+  create_time            DateTime  @default(now())
+  update_time            DateTime? @updatedAt
+
+  @@map("report_logs")
 }

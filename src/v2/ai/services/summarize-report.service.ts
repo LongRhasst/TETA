@@ -1,15 +1,14 @@
-import { ChatDeepSeek } from '@langchain/deepseek';
-import { Inject, Injectable } from '@nestjs/common';
-import { ChatPromptTemplate } from '@langchain/core/prompts';
+import { Injectable } from '@nestjs/common';
 import {
   SUMMARIZE_REPORT_SYSTEM_PROMPT,
   SUMMARIZE_REPORT_USER_PROMPT,
 } from '../prompts';
 import { trainingExamples } from '../trainning/training-IO';
+import { LMStudioService } from '../lmstudio.service';
 
 @Injectable()
 export class SummarizeReportService {
-  constructor(@Inject('AI') private readonly ai: ChatDeepSeek) {}
+  constructor(private readonly lmStudioService: LMStudioService) {}
 
   /**
    * Tạo báo cáo tổng hợp team từ tất cả daily reports
@@ -19,15 +18,11 @@ export class SummarizeReportService {
     // Chuẩn bị dữ liệu đầu vào dưới dạng structured format
     const inputData = this.prepareReportData(dailyReports);
     
-    const prompt = ChatPromptTemplate.fromMessages([
-      ['system', SUMMARIZE_REPORT_SYSTEM_PROMPT],
-      ['user', SUMMARIZE_REPORT_USER_PROMPT],
-    ]);
+    const systemPrompt = SUMMARIZE_REPORT_SYSTEM_PROMPT;
+    const userPrompt = SUMMARIZE_REPORT_USER_PROMPT.replace('{input}', inputData);
 
-    const chain = prompt.pipe(this.ai);
-    const result = await chain.invoke({ input: inputData });
-
-    return this.formatResponse(result);
+    const result = await this.lmStudioService.generateContentWithChunking(systemPrompt, userPrompt);
+    return result;
   }
 
   /**
@@ -50,15 +45,10 @@ ${trainingExamples.weeklyReportTraining.expectedOutput.substring(0, 800)}...
 6. Kết thúc bằng action items cụ thể
 7. Xử lý riêng các báo cáo không hợp lệ (daily_late = true)`;
 
-    const prompt = ChatPromptTemplate.fromMessages([
-      ['system', enhancedSystemPrompt],
-      ['user', SUMMARIZE_REPORT_USER_PROMPT],
-    ]);
+    const userPrompt = SUMMARIZE_REPORT_USER_PROMPT.replace('{input}', input);
 
-    const chain = prompt.pipe(this.ai);
-    const result = await chain.invoke({ input });
-
-    return this.formatResponse(result);
+    const result = await this.lmStudioService.generateContentWithChunking(enhancedSystemPrompt, userPrompt);
+    return result;
   }
 
   /**
@@ -79,53 +69,25 @@ ${trainingExamples.weeklyReportTraining.expectedOutput.substring(0, 800)}...
 
   /**
    * Chuẩn bị dữ liệu daily reports thành format phù hợp cho AI
+   * Giảm kích thước để tránh context overflow
    */
   private prepareReportData(reports: any[]): string {
-    const validReports = reports.filter(r => !r.daily_late);
-    const invalidReports = reports.filter(r => r.daily_late);
+    // Chỉ lấy tối đa 8 reports để tránh context overflow
+    const limitedReports = reports.slice(0, 8);
+    const validReports = limitedReports.filter(r => !r.daily_late);
+    const invalidReports = limitedReports.filter(r => r.daily_late);
     
-    let dataString = `=== THỐNG KÊ TỔNG QUAN ===\n`;
-    dataString += `Tổng số báo cáo: ${reports.length}\n`;
-    dataString += `Báo cáo hợp lệ: ${validReports.length}\n`;
-    dataString += `Báo cáo không hợp lệ: ${invalidReports.length}\n\n`;
+    let dataString = `=== THỐNG KÊ ===\n`;
+    dataString += `Tổng: ${limitedReports.length}, Hợp lệ: ${validReports.length}, Không hợp lệ: ${invalidReports.length}\n\n`;
 
-    dataString += `=== CHI TIẾT BÁO CÁO HỢP LỆ ===\n`;
+    dataString += `=== CHI TIẾT (TOP ${validReports.length}) ===\n`;
     validReports.forEach(report => {
-      dataString += `--- ${report.display_name || report.member} ---\n`;
-      dataString += `Dự án: ${report.project_label || 'Không xác định'}\n`;
-      dataString += `Task: ${report.task_label || 'Không xác định'}\n`;
-      dataString += `Loại công việc: ${report.work_type || 'Không xác định'}\n`;
-      dataString += `Ngày: ${report.date || 'Không xác định'}\n`;
-      dataString += `Công việc hôm qua: ${report.yesterday || 'Không có thông tin'}\n`;
-      dataString += `Kế hoạch hôm nay: ${report.today || 'Không có thông tin'}\n`;
-      dataString += `Blockers: ${report.block || 'Không có'}\n`;
-      dataString += `Thời gian làm việc: ${report.working_time || 'Không xác định'}\n`;
-      dataString += `Thời gian tạo: ${report.create_time}\n\n`;
+      dataString += `${report.display_name || report.member}: `;
+      dataString += `${(report.yesterday || '').substring(0, 50)}... | `;
+      dataString += `${(report.today || '').substring(0, 50)}... | `;
+      dataString += `${report.block || 'OK'}\n`;
     });
 
-    if (invalidReports.length > 0) {
-      dataString += `=== BÁO CÁO KHÔNG HỢP LỆ ===\n`;
-      invalidReports.forEach(report => {
-        dataString += `--- ${report.display_name || report.member} ---\n`;
-        dataString += `Lý do: Báo cáo chứa lỗi định dạng thời gian\n`;
-        dataString += `Thời gian tạo: ${report.create_time}\n`;
-        dataString += `Nội dung update: ${report.update_data}\n\n`;
-      });
-    }
-
     return dataString;
-  }
-
-  /**
-   * Format the AI response to ensure consistent string output
-   */
-  private formatResponse(result: any): string {
-    if (typeof result.content === 'string') {
-      return result.content;
-    } else if (result.content && typeof result.content === 'object' && 't' in result.content) {
-      return (result.content as { t: string }).t;
-    } else {
-      return JSON.stringify(result.content);
-    }
   }
 }

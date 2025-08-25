@@ -16,8 +16,9 @@ import * as Joi from 'joi';
       validationSchema: Joi.object({
         MEZON_TOKEN: Joi.string().required(),
         DATABASE_URL: Joi.string().required(),
-        AI_MODEL: Joi.string().required(),
-        AI_API_KEY: Joi.string().required(),
+        LM_STUDIO_API_URL: Joi.string().required(),
+        LM_STUDIO_MODEL: Joi.string().required(),
+        AI_TIMEOUT: Joi.number().default(120000),
       })
     }),
     EventEmitterModule.forRoot(),

@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@google-cloud/cloud-sql-connector": "^1.8.3",
     "@hapi/hapi": "^21.4.2",
     "@langchain/core": "^0.3.68",
     "@langchain/deepseek": "^0.1.0",
@@ -29,12 +30,14 @@
     "@nestjs/event-emitter": "^3.0.1",
     "@nestjs/platform-express": "^11.0.1",
     "@prisma/client": "^6.13.0",
+    "axios": "^1.11.0",
     "dotenv": "^17.2.1",
     "jest-cucumber": "^4.5.0",
     "joi": "^18.0.0",
     "langchain": "^0.3.30",
     "mezon-sdk": "^2.8.11",
     "minimatch": "^10.0.3",
+    "pg": "^8.16.3",
     "prisma": "^6.13.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"

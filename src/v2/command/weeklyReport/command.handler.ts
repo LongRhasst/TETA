@@ -86,7 +86,7 @@ export class CommandHandler {
       case '*help':
         finalResult = this.generateHelpMessage();
         break;
-      
+
       default:
         return null; // Không phải command được hỗ trợ
     }
