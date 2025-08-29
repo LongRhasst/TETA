@@ -3,6 +3,7 @@ import { ChannelMessage } from 'mezon-sdk';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { KomuMessageData } from '../types/komu.types';
 import { KomuParserService } from './komu-parser.service';
+import { COMMAND_CODES } from '../../constants/command-codes';
 
 @Injectable()
 export class KomuDatabaseService {
@@ -94,12 +95,74 @@ export class KomuDatabaseService {
   }
 
   /**
+   * Check if report already exists for given time and command code
+   */
+  async checkReportExists(commandCode: number, startDate: Date, endDate: Date): Promise<any | null> {
+    try {
+      const existingReport = await this.prisma.report_log.findFirst({
+        where: {
+          code: commandCode,
+          create_time: {
+            gte: startDate,
+            lte: endDate
+          }
+        },
+        orderBy: {
+          create_time: 'desc'
+        }
+      });
+      return existingReport;
+    } catch (error) {
+      console.error('Error checking existing report:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get existing report as JSON string
+   */
+  async getExistingReportAsJson(reportId: number): Promise<string> {
+    try {
+      const report = await this.prisma.report_log.findUnique({
+        where: { id: reportId }
+      });
+      
+      if (!report) {
+        throw new Error(`Report not found with id: ${reportId}`);
+      }
+
+      // Convert report back to JSON format similar to AI output
+      const reportJson = {
+        project_name: report.project_name,
+        member: report.member,
+        progress: report.progress,
+        customer_communication: report.customer_communication,
+        human_resource: report.human_resource,
+        profession: report.profession,
+        technical_solution: report.technical_solution,
+        testing: report.testing,
+        milestone: report.milestone,
+        week_goal: report.week_goal,
+        issue: report.issue,
+        risks: report.risks
+      };
+
+      return JSON.stringify(reportJson, null, 2);
+    } catch (error) {
+      console.error('Error getting existing report:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Save database output report
    */
-  async saveProjectReport(reportJson: string){
+  async saveProjectReport(reportJson: string, commandCode?: number){
     try {
       // Parse JSON string to object
       const report = JSON.parse(reportJson);
+      // Use provided command code or default to WEEKLY_REPORT
+      const code = commandCode || COMMAND_CODES.WEEKLY_REPORT;
       
       // Save to report_log table với proper structure
       await this.prisma.report_log.create({
@@ -115,7 +178,8 @@ export class KomuDatabaseService {
           milestone: report.milestone || '',
           week_goal: report.week_goal || '',
           issue: report.issue || '',
-          risks: report.risks || ''
+          risks: report.risks || '',
+          code: code, // Command type code
         }
       });
     } catch (error) {
@@ -268,6 +332,24 @@ export class KomuDatabaseService {
       display_name: message.display_name || undefined,
     };
   }
+  /**
+   * Query if reports was existed before 
+   */
+  private async queryReport(commandCode: number, timeFilter: any): Promise<boolean> {
+    // Query report_log table instead of data_report since code column is there
+    try {
+      const existingReport = await this.prisma.report_log.findFirst({
+        where: {
+          code: commandCode,
+          create_time: timeFilter
+        }
+      });
+      return existingReport !== null;
+    } catch (error) {
+      console.error('Error querying report:', error);
+      return false;
+    }
+  }
 
   /**
    * Filter out null, undefined, and empty string values from object
@@ -297,5 +379,41 @@ export class KomuDatabaseService {
     // Check for the specific error message
     const invalidTimeFramePattern = /Invalid daily time frame.*Please daily at.*not daily.*time/i;
     return invalidTimeFramePattern.test(contentStr);
+  }
+
+  /**
+   * Clean up old reports and data to free up space
+   * @param cutoffDate - Delete data older than this date
+   * @returns Number of deleted records
+   */
+  async cleanupOldReports(cutoffDate: Date): Promise<number> {
+    try {
+      // Delete old daily reports
+      const deletedDataReports = await this.prisma.data_report.deleteMany({
+        where: {
+          create_time: {
+            lt: cutoffDate
+          }
+        }
+      });
+
+      // Delete old weekly reports logs
+      const deletedReportLogs = await this.prisma.report_log.deleteMany({
+        where: {
+          create_time: {
+            lt: cutoffDate
+          }
+        }
+      });
+
+      const totalDeleted = deletedDataReports.count + deletedReportLogs.count;
+      
+      console.log(`Cleanup completed: ${deletedDataReports.count} data reports, ${deletedReportLogs.count} report logs deleted`);
+      
+      return totalDeleted;
+    } catch (error) {
+      console.error('Error during cleanup:', error);
+      throw error;
+    }
   }
 }

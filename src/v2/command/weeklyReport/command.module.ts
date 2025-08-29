@@ -8,6 +8,6 @@ import { MezonModule } from '../../mezon/mezon.module';
 @Module({
   imports: [WeeklyReportModule, MezonModule],
   providers: [CommandHandler, CommandListener, TimeControlService],
-  exports: [CommandHandler, CommandListener],
+  exports: [CommandHandler, CommandListener, TimeControlService],
 })
 export class CommandModule {}

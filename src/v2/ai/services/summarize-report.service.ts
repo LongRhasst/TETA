@@ -3,7 +3,6 @@ import {
   SUMMARIZE_REPORT_SYSTEM_PROMPT,
   SUMMARIZE_REPORT_USER_PROMPT,
 } from '../prompts';
-import { trainingExamples } from '../trainning/training-IO';
 import { LMStudioService } from '../lmstudio.service';
 
 @Injectable()
@@ -27,14 +26,11 @@ export class SummarizeReportService {
 
   /**
    * Generate report with training context for better output
-   * Sử dụng training examples để cải thiện chất lượng output
+   * Sử dụng enhanced prompt để cải thiện chất lượng output
    */
   async generateSummarizeReportWithTraining(input: string): Promise<string> {
     // Enhanced prompt với training context
     const enhancedSystemPrompt = `${SUMMARIZE_REPORT_SYSTEM_PROMPT}
-
-=== VÍ DỤ OUTPUT CHUẨN ===
-${trainingExamples.weeklyReportTraining.expectedOutput.substring(0, 800)}...
 
 === QUY TẮC BỔ SUNG ===
 1. Luôn sử dụng tiếng Việt trong báo cáo

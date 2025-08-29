@@ -41,7 +41,7 @@ model report_log {
   project_name           String    @db.VarChar(500)
   member                 String    @db.VarChar(500)
   progress               String    @db.Text
-  customer_communication String   @db.Text
+  customer_communication String    @db.Text
   human_resource         String    @db.Text
   profession             String    @db.VarChar(255)
   technical_solution     String    @db.Text
@@ -52,6 +52,7 @@ model report_log {
   risks                  String    @db.Text
   create_time            DateTime  @default(now())
   update_time            DateTime? @updatedAt
+  code                   Int       @default(1) // 1 = *weeklyreport
 
   @@map("report_logs")
 }
