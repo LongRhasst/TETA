@@ -106,7 +106,7 @@ export class WeeklyReportService {
       const reportContent = await this.projectService.generateProjectReport(reports);
 
       // Lưu báo cáo vào database
-      await this.databaseService.saveProjectReport(reportContent, COMMAND_CODES.WEEKLY_REPORT);
+      await this.databaseService.saveProjectReport(reportContent, COMMAND_CODES.WEEKLY_REPORT, timeRange.endDate);
 
       console.log(`✅ Đã tạo và lưu báo cáo mới cho ${dateRangeStr}`);
 

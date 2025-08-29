@@ -51,8 +51,8 @@ model report_log {
   issue                  String    @db.Text
   risks                  String    @db.Text
   create_time            DateTime  @default(now())
-  update_time            DateTime? @updatedAt
-  code                   Int       @default(1) // 1 = *weeklyreport
+  date_log               DateTime
+  code_log                   Int
 
   @@map("report_logs")
 }

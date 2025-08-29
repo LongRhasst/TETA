@@ -101,14 +101,14 @@ export class KomuDatabaseService {
     try {
       const existingReport = await this.prisma.report_log.findFirst({
         where: {
-          code: commandCode,
-          create_time: {
+          code_log: commandCode,
+          date_log: {
             gte: startDate,
             lte: endDate
           }
         },
         orderBy: {
-          create_time: 'desc'
+          date_log: 'desc'
         }
       });
       return existingReport;
@@ -157,7 +157,7 @@ export class KomuDatabaseService {
   /**
    * Save database output report
    */
-  async saveProjectReport(reportJson: string, commandCode?: number){
+  async saveProjectReport(reportJson: string, commandCode?: number, lteDate?: Date) {
     try {
       // Parse JSON string to object
       const report = JSON.parse(reportJson);
@@ -179,7 +179,8 @@ export class KomuDatabaseService {
           week_goal: report.week_goal || '',
           issue: report.issue || '',
           risks: report.risks || '',
-          code: code, // Command type code
+          code_log: code, // Command type code
+          date_log: lteDate || ''
         }
       });
     } catch (error) {
@@ -333,14 +334,14 @@ export class KomuDatabaseService {
     };
   }
   /**
-   * Query if reports was existed before 
+   * Query if reports was existed before
    */
   private async queryReport(commandCode: number, timeFilter: any): Promise<boolean> {
     // Query report_log table instead of data_report since code column is there
     try {
       const existingReport = await this.prisma.report_log.findFirst({
         where: {
-          code: commandCode,
+          code_log: commandCode,
           create_time: timeFilter
         }
       });
@@ -372,8 +373,8 @@ export class KomuDatabaseService {
     if (!messageContent) return false;
     
     // Convert to string for checking
-    const contentStr = typeof messageContent === 'string' 
-      ? messageContent 
+    const contentStr = typeof messageContent === 'string'
+      ? messageContent
       : JSON.stringify(messageContent);
     
     // Check for the specific error message
