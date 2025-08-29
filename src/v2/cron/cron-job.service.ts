@@ -87,22 +87,6 @@ export class CronJobService {
     }
   }
 
-  /**
-   * Test cronjob - chạy mỗi 5 phút (chỉ để test)
-   * Uncomment để test, nhớ comment lại sau khi test xong
-   */
-  // @Cron('*/5 * * * *', {
-  //   name: 'test-weekly-report',
-  //   timeZone: 'Asia/Ho_Chi_Minh',
-  // })
-  // async handleTestWeeklyReportCron() {
-  //   this.logger.log('🧪 Test weekly report cron job đang chạy...');
-  //   await this.handleWeeklyReportCron();
-  // }
-
-  /**
-   * Cronjob dọn dẹp dữ liệu cũ - chạy vào 1h sáng chủ nhật hàng tuần
-   */
   @Cron('0 1 * * 0', {
     name: 'cleanup-old-data',
     timeZone: 'Asia/Ho_Chi_Minh',

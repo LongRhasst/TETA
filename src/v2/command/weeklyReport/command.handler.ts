@@ -123,7 +123,7 @@ export class CommandHandler {
    */
   isCommand(message: ChannelMessage): boolean {
     const content = this.extractMessageContent(message);
-    return content ? content.trim().startsWith('*') : false;
+    return content ? content.trim().startsWith('*weekly') : false;
   }
 
   /**

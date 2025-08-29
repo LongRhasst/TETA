@@ -180,12 +180,6 @@ export class WeeklyReportService {
       if (projectEntries.length > 0) {
         statsMessage += `• Dự án: ${projectEntries[0][0]} : ${projectEntries[0][1]} báo cáo\n\n`;
       }
-      // if (topProjects.length > 0) {
-      //   statsMessage += `Top dự án:\n`;
-      //   topProjects.forEach(([project, count]) => {
-      //     statsMessage += `• ${project}: ${count} báo cáo\n`;
-      //   });
-      // }
 
       return generateChannelMessageContent({
         message: `\n${statsMessage}\n`,
