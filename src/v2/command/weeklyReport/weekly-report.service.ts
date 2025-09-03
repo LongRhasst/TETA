@@ -4,6 +4,8 @@ import { SummarizeReportService } from '../../ai/services/summarize-report.servi
 import { ProjectReportService } from '../../ai/services/project-report.service';
 import { TimeControlService } from './timeControl/time-control.service';
 import { generateChannelMessageContent } from '../message';
+import { COMMAND_CODES } from '../../constants/command-codes';
+import { report } from 'process';
 
 @Injectable()
 export class WeeklyReportService {
@@ -68,6 +70,28 @@ export class WeeklyReportService {
       // Thông báo báo cáo đang được tạo
       console.log(`Báo cáo đánh giá dự án đang được tạo cho ${dateRangeStr}...`);
       
+      // Kiểm tra xem báo cáo đã tồn tại trong database chưa
+      const existingReport = await this.databaseService.checkReportExists(
+        COMMAND_CODES.WEEKLY_REPORT,
+        timeRange.startDate,
+        timeRange.endDate
+      );
+
+      if (existingReport) {
+        console.log(`📄 Tìm thấy báo cáo có sẵn (ID: ${existingReport.id}) tạo lúc ${existingReport.create_time}`);
+        
+        // Lấy báo cáo đã có và format lại
+        const reportContent = await this.databaseService.getExistingReportAsJson(existingReport.id);
+        
+        return generateChannelMessageContent({
+          message: `\nBÁO CÁO ĐÁNH GIÁ DỰ ÁN - 12 TIÊU CHÍ (Đã tạo)\nThời gian: ${dateRangeStr}\nTạo lúc: ${new Date(existingReport.create_time).toLocaleString('vi-VN')}\n\n${reportContent}\n`,
+          blockMessage: true,
+        });
+      }
+
+      // Nếu chưa có báo cáo, lấy dữ liệu và tạo mới
+      console.log(`🔄 Không tìm thấy báo cáo có sẵn, đang tạo báo cáo mới...`);
+      
       // Lấy reports theo channel và time filter
       const reports = await this.databaseService.getReportsByChannelAndTime(channelId, timeFilter);
       
@@ -78,17 +102,22 @@ export class WeeklyReportService {
         });
       }
 
-      // create report a team for pm
+      // Tạo báo cáo mới bằng AI
       const reportContent = await this.projectService.generateProjectReport(reports);
 
+      // Lưu báo cáo vào database
+      await this.databaseService.saveProjectReport(reportContent, COMMAND_CODES.WEEKLY_REPORT, timeRange.endDate);
+
+      console.log(`✅ Đã tạo và lưu báo cáo mới cho ${dateRangeStr}`);
+
       return generateChannelMessageContent({
-        message: `\`\`\`\nBÁO CÁO ĐÁNH GIÁ DỰ ÁN - 12 TIÊU CHÍ\nThời gian: ${dateRangeStr}\n\n${reportContent}\n\`\`\``,
+        message: `\nBÁO CÁO ĐÁNH GIÁ DỰ ÁN - 12 TIÊU CHÍ (Mới tạo)\nThời gian: ${dateRangeStr}\n\n${reportContent}\n`,
         blockMessage: true,
       });
     } catch (error) {
       console.error('Error generating weekly project report:', error);
       return generateChannelMessageContent({
-        message: '```\nCó lỗi xảy ra khi tạo báo cáo đánh giá dự án.\n```',
+        message: `\nCó lỗi xảy ra khi tạo báo cáo đánh giá dự án.\n`,
         blockMessage: true,
       });
     }
@@ -151,12 +180,6 @@ export class WeeklyReportService {
       if (projectEntries.length > 0) {
         statsMessage += `• Dự án: ${projectEntries[0][0]} : ${projectEntries[0][1]} báo cáo\n\n`;
       }
-      // if (topProjects.length > 0) {
-      //   statsMessage += `Top dự án:\n`;
-      //   topProjects.forEach(([project, count]) => {
-      //     statsMessage += `• ${project}: ${count} báo cáo\n`;
-      //   });
-      // }
 
       return generateChannelMessageContent({
         message: `\n${statsMessage}\n`,

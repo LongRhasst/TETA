@@ -86,7 +86,7 @@ export class CommandHandler {
       case '*help':
         finalResult = this.generateHelpMessage();
         break;
-      
+
       default:
         return null; // Không phải command được hỗ trợ
     }
@@ -123,7 +123,7 @@ export class CommandHandler {
    */
   isCommand(message: ChannelMessage): boolean {
     const content = this.extractMessageContent(message);
-    return content ? content.trim().startsWith('*') : false;
+    return content ? content.trim().startsWith('*weekly') : false;
   }
 
   /**
