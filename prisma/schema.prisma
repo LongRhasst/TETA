@@ -55,5 +55,6 @@ model report_log {
   date_log               DateTime
   code_log                   Int
 
+  @@index([date_log])
   @@map("report_logs")
 }
