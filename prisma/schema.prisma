@@ -33,6 +33,7 @@ model data_report {
   member               String?
 
   @@index([create_time])
+  @@index([channel_id])
   @@map("data_reports")
 }
 
