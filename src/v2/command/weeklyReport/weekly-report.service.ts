@@ -158,8 +158,8 @@ export class WeeklyReportService {
 
       const projectStats: Record<string, number> = {};
       validReports.forEach(report => {
-        if (report.project_label) {
-          projectStats[report.project_label] = (projectStats[report.project_label] || 0) + 1;
+        if (report.project_value) {
+          projectStats[report.project_value] = (projectStats[report.project_value] || 0) + 1;
         }
       });
 

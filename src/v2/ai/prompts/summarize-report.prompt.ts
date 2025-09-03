@@ -20,7 +20,7 @@ Cấu trúc mỗi report:
 - message_id: ID tin nhắn
 - username: Tên user
 - display_name: Tên hiển thị
-- project_label/project_value: Thông tin dự án
+- project_value/project_value: Thông tin dự án
 - task_label/task_value: Thông tin task
 - work_type: Loại công việc
 - date: Ngày báo cáo

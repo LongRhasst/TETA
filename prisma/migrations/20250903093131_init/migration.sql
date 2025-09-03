@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE `data_reports` (
+CREATE TABLE `daily_notes` (
     `message_id` VARCHAR(191) NOT NULL,
     `channel_id` VARCHAR(191) NOT NULL,
     `clan_id` VARCHAR(191) NOT NULL,
@@ -9,27 +9,24 @@ CREATE TABLE `data_reports` (
     `today` VARCHAR(191) NULL,
     `yesterday` VARCHAR(191) NULL,
     `date` DATE NULL,
-    `default_working_time` INTEGER NULL,
-    `display_name` VARCHAR(191) NULL,
-    `project_label` VARCHAR(191) NULL,
     `project_value` VARCHAR(191) NULL,
-    `reply_data` JSON NULL,
     `sender_id` VARCHAR(191) NULL,
     `task_label` VARCHAR(191) NULL,
     `task_value` VARCHAR(191) NULL,
+    `reply_data` JSON NULL,
     `update_data` JSON NULL,
     `work_type` VARCHAR(191) NULL,
     `working_time` VARCHAR(191) NULL,
     `daily_late` BOOLEAN NOT NULL DEFAULT false,
     `member` VARCHAR(191) NULL,
 
-    INDEX `data_reports_create_time_idx`(`create_time`),
-    INDEX `data_reports_channel_id_idx`(`channel_id`),
+    INDEX `daily_notes_date_idx`(`date`),
+    INDEX `daily_notes_channel_id_idx`(`channel_id`),
     PRIMARY KEY (`message_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `report_logs` (
+CREATE TABLE `weekly_reports` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `project_name` VARCHAR(500) NOT NULL,
     `member` VARCHAR(500) NOT NULL,
@@ -47,5 +44,6 @@ CREATE TABLE `report_logs` (
     `date_log` DATETIME(3) NOT NULL,
     `code_log` INTEGER NOT NULL,
 
+    INDEX `weekly_reports_date_log_idx`(`date_log`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

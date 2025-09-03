@@ -13,6 +13,30 @@ export class KomuDatabaseService {
   ) {}
 
   /**
+   * Get unique member count from database (đếm số tên unique)
+   */
+  async getUniqueMemberCount(): Promise<number> {
+    try {
+      const result = await this.prisma.daily_notes.findMany({
+        distinct: ['member'],
+        select: {
+          member: true
+        }
+      });
+      
+      // Lọc ra các member name không rỗng và unique
+      const uniqueMembers = result
+        .map(r => r.member)
+        .filter(member => member && member.trim() !== '' && member.trim() !== 'null');
+      
+      return uniqueMembers.length;
+    } catch (error) {
+      console.error('Error getting unique member count:', error);
+      return 0;
+    }
+  }
+
+  /**
    * Direct upsert without any conditions - simple and straightforward
    */
   async upsertDirectly(
@@ -37,14 +61,13 @@ export class KomuDatabaseService {
         const messageSenderUsername = this.parserService.extractSenderUsername(message);
         
         // Add preferences data directly
-        completeData.project_label = preferences.project?.label || null;
         completeData.project_value = preferences.project?.value || null;
-        completeData.task_label = preferences.task?.label || null;
-        completeData.task_value = preferences.task?.value || null;
+        // completeData.task_label = preferences.task?.label || null;
+        // completeData.task_value = preferences.task?.value || null;
         completeData.work_type = preferences['type of work']?.label || null;
-        completeData.default_working_time = preferences['working time'] || null;
+        // completeData.default_working_time = preferences['working time'] || null;
         completeData.member = messageSenderUsername || null;
-        completeData.reply_data = (message as any).content;
+        // completeData.reply_data = (message as any).content;
       } catch (e) {
         console.log('Could not extract preferences from reply, continuing...');
         completeData.reply_data = (message as any).content;
@@ -60,7 +83,7 @@ export class KomuDatabaseService {
         completeData.today = outputData.today || null;
         completeData.block = outputData.block || null;
         completeData.working_time = outputData['working time'] || null;
-        completeData.update_data = (message as any).content;
+        // completeData.update_data = (message as any).content;
         
         // Check if update data contains invalid time frame (set as late if invalid)
         if (this.checkForInvalidTimeFrame((message as any).content)) {
@@ -68,7 +91,7 @@ export class KomuDatabaseService {
         }
       } catch (e) {
         console.log('Could not extract output data from update, continuing...');
-        completeData.update_data = (message as any).content;
+        // completeData.update_data = (message as any).content;
         
         // Also check validation for error case
         if (this.checkForInvalidTimeFrame((message as any).content)) {
@@ -81,7 +104,7 @@ export class KomuDatabaseService {
     const updateData = this.filterNullValues(completeData);
 
     // Upsert with filtered data for update, complete data for create
-    await this.prisma.data_report.upsert({
+    await this.prisma.daily_notes.upsert({
       where: { message_id: messageId },
       update: updateData, // Only non-null values for update
       create: completeData, // All data for create
@@ -99,7 +122,7 @@ export class KomuDatabaseService {
    */
   async checkReportExists(commandCode: number, startDate: Date, endDate: Date): Promise<any | null> {
     try {
-      const existingReport = await this.prisma.report_log.findFirst({
+      const existingReport = await this.prisma.weekly_reports.findFirst({
         where: {
           code_log: commandCode,
           date_log: {
@@ -123,7 +146,7 @@ export class KomuDatabaseService {
    */
   async getExistingReportAsJson(reportId: number): Promise<string> {
     try {
-      const report = await this.prisma.report_log.findUnique({
+      const report = await this.prisma.weekly_reports.findUnique({
         where: { id: reportId }
       });
       
@@ -164,8 +187,8 @@ export class KomuDatabaseService {
       // Use provided command code or default to WEEKLY_REPORT
       const code = commandCode || COMMAND_CODES.WEEKLY_REPORT;
       
-      // Save to report_log table với proper structure
-      await this.prisma.report_log.create({
+      // Save to weekly_report table với proper structure
+      await this.prisma.weekly_reports.create({
         data: {
           project_name: report.project_name || '',
           member: report.member || '',
@@ -193,7 +216,7 @@ export class KomuDatabaseService {
    * Get data by message ID
    */
   async getData(messID: string) {
-    const report = await this.prisma.data_report.findUnique({
+    const report = await this.prisma.daily_notes.findUnique({
       where: { message_id: messID }
     });
 
@@ -206,20 +229,18 @@ export class KomuDatabaseService {
       timestamp: report.create_time,
       channel_id: report.channel_id,
       clan_id: report.clan_id,
-      sender_id: report.sender_id,
-      display_name: report.display_name,
+      // sender_id: report.sender_id,
       member: report.member,
       daily_late: report.daily_late,
       preferences: {
-        project: report.project_label && report.project_value ? {
-          label: report.project_label,
+        project: report.project_value && report.project_value ? {
+          label: report.project_value,
           value: report.project_value
         } : null,
-        task: report.task_label && report.task_value ? {
-          label: report.task_label,
-          value: report.task_value
-        } : null,
-        'working time': report.default_working_time,
+        // task: report.task_value && report.task_label ? {
+        //   label: report.task_label,
+        //   value: report.task_value
+        // } : null,
         'type of work': report.work_type
       },
       output: {
@@ -229,10 +250,10 @@ export class KomuDatabaseService {
         block: report.block,
         'working time': report.working_time
       },
-      raw_data: {
-        reply: report.reply_data,
-        update: report.update_data
-      }
+      // raw_data: {
+      //   reply: report.reply_data,
+      //   update: report.update_data
+      // }
     };
   }
 
@@ -240,8 +261,8 @@ export class KomuDatabaseService {
    * Get all reports from database
    */
   async getAllReportsByTime(time: number) {
-    return await this.prisma.data_report.findMany({
-      orderBy: { create_time: 'desc' }
+    return await this.prisma.daily_notes.findMany({
+      orderBy: { date: 'desc' }
     });
   }
 
@@ -249,12 +270,12 @@ export class KomuDatabaseService {
    * Get reports by channel with time filter
    */
   async getReportsByChannelAndTime(channelId: string, timeFilter: any) {
-    return await this.prisma.data_report.findMany({
+    return await this.prisma.daily_notes.findMany({
       where: {
         channel_id: channelId,
         ...timeFilter
       },
-      orderBy: { create_time: 'desc' }
+      orderBy: { date: 'desc' }
     });
   }
 
@@ -262,12 +283,12 @@ export class KomuDatabaseService {
    * Get reports by member with time filter
    */
   async getReportsByMemberAndTime(member: string, timeFilter: any) {
-    return await this.prisma.data_report.findMany({
+    return await this.prisma.daily_notes.findMany({
       where: {
         member,
         ...timeFilter
       },
-      orderBy: { create_time: 'desc' }
+      orderBy: { date: 'desc' }
     });
   }
 
@@ -275,9 +296,9 @@ export class KomuDatabaseService {
    * Get all reports with time filter
    */
   async getAllReportsWithTimeFilter(timeFilter: any) {
-    return await this.prisma.data_report.findMany({
+    return await this.prisma.daily_notes.findMany({
       where: timeFilter,
-      orderBy: { create_time: 'desc' }
+      orderBy: { date: 'desc' }
     });
   }
 
@@ -285,9 +306,9 @@ export class KomuDatabaseService {
    * Get reports by member
    */
   async getReportsByMember(member: string) {
-    return await this.prisma.data_report.findMany({
+    return await this.prisma.daily_notes.findMany({
       where: { member },
-      orderBy: { create_time: 'desc' }
+      orderBy: { date: 'desc' }
     });
   }
 
@@ -295,9 +316,9 @@ export class KomuDatabaseService {
    * Get reports by channel
    */
   async getReportsByChannel(channelId: string) {
-    return await this.prisma.data_report.findMany({
+    return await this.prisma.daily_notes.findMany({
       where: { channel_id: channelId },
-      orderBy: { create_time: 'desc' }
+      orderBy: { date: 'desc' }
     });
   }
 
@@ -305,9 +326,9 @@ export class KomuDatabaseService {
    * Get invalid reports (containing time frame errors)
    */
   async getInvalidReports() {
-    return await this.prisma.data_report.findMany({
+    return await this.prisma.daily_notes.findMany({
       where: { daily_late: true },
-      orderBy: { create_time: 'desc' }
+      orderBy: { date: 'desc' }
     });
   }
 
@@ -315,9 +336,9 @@ export class KomuDatabaseService {
    * Get reports by validation status
    */
   async getReportsByValidation(isValid: boolean) {
-    return await this.prisma.data_report.findMany({
+    return await this.prisma.daily_notes.findMany({
       where: { daily_late: !isValid }, // daily_late true = invalid, false = valid
-      orderBy: { create_time: 'desc' }
+      orderBy: { date: 'desc' }
     });
   }
 
@@ -329,20 +350,20 @@ export class KomuDatabaseService {
       message_id: messageId,
       channel_id: message.channel_id || '',
       clan_id: message.clan_id || '',
-      sender_id: message.sender_id || undefined,
-      display_name: message.display_name || undefined,
+      // sender_id: message.sender_id || undefined,
+      // display_name: message.display_name || undefined,
     };
   }
   /**
    * Query if reports was existed before
    */
   private async queryReport(commandCode: number, timeFilter: any): Promise<boolean> {
-    // Query report_log table instead of data_report since code column is there
+    // Query weekly_report table instead of daily_notes since code column is there
     try {
-      const existingReport = await this.prisma.report_log.findFirst({
+      const existingReport = await this.prisma.weekly_reports.findFirst({
         where: {
           code_log: commandCode,
-          create_time: timeFilter
+          date_log: timeFilter
         }
       });
       return existingReport !== null;
@@ -390,18 +411,18 @@ export class KomuDatabaseService {
   async cleanupOldReports(cutoffDate: Date): Promise<number> {
     try {
       // Delete old daily reports
-      const deletedDataReports = await this.prisma.data_report.deleteMany({
+      const deletedDataReports = await this.prisma.daily_notes.deleteMany({
         where: {
-          create_time: {
+          date: {
             lt: cutoffDate
           }
         }
       });
 
       // Delete old weekly reports logs
-      const deletedReportLogs = await this.prisma.report_log.deleteMany({
+      const deletedReportLogs = await this.prisma.weekly_reports.deleteMany({
         where: {
-          create_time: {
+          date_log: {
             lt: cutoffDate
           }
         }

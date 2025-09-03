@@ -8,7 +8,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model data_report {
+model daily_notes {
   message_id           String    @id
   channel_id           String
   clan_id              String
@@ -18,26 +18,23 @@ model data_report {
   today                String?
   yesterday            String?
   date                 DateTime? @db.Date
-  default_working_time Int?
-  display_name         String?
-  project_label        String?
   project_value        String?
-  reply_data           Json?
-  sender_id            String?
-  task_label           String?
-  task_value           String?
-  update_data          Json?
+  // sender_id            String?
+  // task_value           String?
+  // task_label           String?
+  // update_data          Json?
+  // reply_data           Json?
   work_type            String?
   working_time         String?
   daily_late           Boolean   @default(false)
   member               String?
 
-  @@index([create_time])
+  @@index([date])
   @@index([channel_id])
-  @@map("data_reports")
+  @@map("daily_notes")
 }
 
-model report_log {
+model weekly_reports {
   id                     Int       @id @default(autoincrement())
   project_name           String    @db.VarChar(500)
   member                 String    @db.VarChar(500)
@@ -56,5 +53,5 @@ model report_log {
   code_log                   Int
 
   @@index([date_log])
-  @@map("report_logs")
+  @@map("weekly_reports")
 }

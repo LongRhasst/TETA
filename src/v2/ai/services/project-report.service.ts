@@ -8,7 +8,9 @@ import { ProjectReport } from '../interface/project.report';
 
 @Injectable()
 export class ProjectReportService {
-  constructor(private readonly lmStudioService: LMStudioService) {}
+  constructor(
+    private readonly lmStudioService: LMStudioService
+  ) {}
 
   /**
    * Tạo báo cáo đánh giá dự án theo 12 tiêu chí chuẩn
@@ -17,17 +19,20 @@ export class ProjectReportService {
   async generateProjectReport(dailyReports: any[]): Promise<string> {
     const inputData = this.prepareProjectReportData(dailyReports);
     
+    // Đếm số lượng member unique từ dữ liệu được truyền vào
+    const uniqueMemberCount = new Set(dailyReports.map(r => r.member).filter(m => m && m.trim() !== '')).size;
+
     // Phân tích dữ liệu cơ bản để tạo report structure
     const analysis = this.analyzeWorkTrends(dailyReports);
     const validReports = dailyReports.filter(r => !r.daily_late);
-    
+
     // Tạo base structure cho ProjectReport
     const projectReport: ProjectReport = {
       project_name: analysis.topProjects[0] || "Multiple Projects",
-      member: `${new Set(validReports.map(r => r.member)).size} active members`,
+      member: `${uniqueMemberCount} unique members in project`,
       progress: `${analysis.validRate.toFixed(1)}% completion rate with ${analysis.totalHours}h total work`,
       customer_communication: "Pending AI analysis",
-      human_resource: `${validReports.length} team members contributing`,
+      human_resource: `${validReports.length} team members contributing this week`,
       profession: "Software Development Team",
       technical_solution: "Pending AI analysis", 
       testing: "Pending AI analysis",
@@ -90,6 +95,10 @@ Analyze the provided data and fill each field with meaningful insights in Vietna
     const validReports = limitedReports.filter(r => !r.daily_late);
     const invalidReports = limitedReports.filter(r => r.daily_late);
     
+    // Đếm số lượng member unique từ dữ liệu truyền vào
+    const uniqueMembersInData = new Set(validReports.map(r => r.member).filter(m => m && m.trim() !== '')).size;
+    const activeMembersThisWeek = new Set(validReports.map(r => r.member)).size;
+    
     // Phân tích dữ liệu cơ bản
     const analysis = this.analyzeWorkTrends(limitedReports);
     
@@ -100,7 +109,8 @@ Analyze the provided data and fill each field with meaningful insights in Vietna
       .map(r => ({ user: r.display_name || r.member, block: r.block.substring(0, 100) }));
     
     let dataString = `=== DỰ ÁN TUẦN ===\n`;
-    dataString += `Thành viên: ${new Set(validReports.map(r => r.member)).size}, `;
+    dataString += `Thành viên trong dữ liệu: ${uniqueMembersInData}, `;
+    dataString += `Hoạt động tuần này: ${activeMembersThisWeek}, `;
     dataString += `Reports: ${limitedReports.length} (${validReports.length} OK)\n`;
     dataString += `Giờ làm: ${analysis.totalHours}h (TB: ${analysis.averageHours.toFixed(1)}h/người)\n`;
     dataString += `Blockers: ${analysis.blockerCount}\n\n`;
@@ -119,7 +129,7 @@ Analyze the provided data and fill each field with meaningful insights in Vietna
       }
       
       userStats[userId].hours += this.parseWorkingTime(report.working_time || '0');
-      if (report.project_label) userStats[userId].projects.add(report.project_label);
+      if (report.project_value) userStats[userId].projects.add(report.project_value);
       if (report.block && report.block.trim() !== '') {
         userStats[userId].hasBlocker = true;
       }
@@ -148,9 +158,10 @@ Analyze the provided data and fill each field with meaningful insights in Vietna
     topProjects: string[];
   } {
     const validReports = reports.filter(r => !r.daily_late);
-    
+
     const totalHours = validReports.reduce((sum, report) => {
       const hours = this.parseWorkingTime(report.working_time);
+      // console.log(sum);
       return sum + hours;
     }, 0);
 
@@ -161,8 +172,8 @@ Analyze the provided data and fill each field with meaningful insights in Vietna
     
     const projectCounts: Record<string, number> = {};
     validReports.forEach(report => {
-      if (report.project_label) {
-        projectCounts[report.project_label] = (projectCounts[report.project_label] || 0) + 1;
+      if (report.project_value) {
+        projectCounts[report.project_value] = (projectCounts[report.project_value] || 0) + 1;
       }
     });
     
@@ -183,15 +194,11 @@ Analyze the provided data and fill each field with meaningful insights in Vietna
   /**
    * Parse working time string to hours
    */
-  private parseWorkingTime(timeStr: string): number {
-    if (!timeStr) return 0;
-    
-    const hourMatch = timeStr.match(/(\d+(?:\.\d+)?)\s*(?:h|hour|giờ)/i);
-    if (hourMatch) return parseFloat(hourMatch[1]);
-    
-    const minMatch = timeStr.match(/(\d+)\s*(?:min|minute|phút)/i);
-    if (minMatch) return parseFloat(minMatch[1]) / 60;
-    
-    return 0;
+  private parseWorkingTime(time: number): number {
+    if (!time) return 0;
+
+    else if (time > 60) return time / 60;
+
+    return time;
   }
 }

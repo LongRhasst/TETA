@@ -121,7 +121,7 @@ export class TimeControlService {
     const timeRange = this.calculateTimeRange(time);
     
     return {
-      create_time: {
+      date: {
         gte: timeRange.startDate,
         lte: timeRange.endDate
       }

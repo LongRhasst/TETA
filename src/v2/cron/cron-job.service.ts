@@ -19,7 +19,7 @@ export class CronJobService {
 
   /**
    * Cronjob tự động tạo báo cáo tuần vào 0h thứ 2 hàng tuần
-   * Lấy dữ liệu từ database, tạo báo cáo và lưu vào report_logs
+   * Lấy dữ liệu từ database, tạo báo cáo và lưu vào weekly_reports
    */
   @Cron('0 0 * * 1', {
     name: 'weekly-report-auto',

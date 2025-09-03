@@ -157,7 +157,7 @@ Bot có 2 cronjob tự động:
 - **Múi giờ**: Asia/Ho_Chi_Minh
 - **Chức năng**: 
   - Tự động tạo báo cáo tuần cho tuần vừa kết thúc
-  - Lưu vào `report_logs` với code = 1
+  - Lưu vào `weekly_reports` với code = 1
   - Kiểm tra duplicate trước khi tạo mới
   - Log chi tiết quá trình xử lý
 
@@ -165,7 +165,7 @@ Bot có 2 cronjob tự động:
 - **Lịch**: 1h sáng Chủ nhật hàng tuần (`0 1 * * 0`)
 - **Chức năng**:
   - Xóa daily reports cũ hơn 3 tháng
-  - Giữ report_logs không giới hạn thời gian
+  - Giữ weekly_reports không giới hạn thời gian
   - Optimize database performance
 
 ### Cấu hình Cronjob
@@ -202,20 +202,20 @@ Logs patterns:
 
 ## 🗂️ Cấu trúc Database
 
-### Bảng `data_reports`
+### Bảng `daily_notess`
 Lưu trữ daily reports thô:
 ```sql
 - message_id (PK)
 - channel_id, clan_id
 - member, display_name
-- project_label, task_label
+- project_value, task_label
 - yesterday, today, block
 - working_time, date
 - daily_late (boolean)
 - create_time, update_time
 ```
 
-### Bảng `report_logs`
+### Bảng `weekly_reports`
 Lưu trữ báo cáo AI đã generate:
 ```sql
 - id (PK)
@@ -273,7 +273,7 @@ npx prisma studio
 
 ### Database Optimization
 - Indexed on create_time for time queries
-- Regular cleanup of old data_reports
+- Regular cleanup of old daily_notess
 - Efficient time range filters
 
 ### AI Performance
